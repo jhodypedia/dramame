@@ -120,7 +120,8 @@ router.get('/chapters', async (req, res) => {
       chapterCount: d.chapterCount,
       chapters: chapters.map((c) => ({
         index: c.chapterIndex,
-        name: c.chapterName,
+        // 🔥 fallback kalau nama kosong → biar nggak "undefined"
+        name: c.chapterName || c.name || null,
         isFree: c.isFree,
         duration: c.duration || null
       }))
