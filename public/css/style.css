@@ -135,11 +135,11 @@ body {
 ----------------------------------------------------*/
 .feed {
   position: relative;
-  margin-top: 4px;
+  margin-top: 0;
   flex: 1;
   overflow-y: auto;
   scroll-snap-type: y mandatory;
-  padding-bottom: 120px; /* ruang untuk bottom-nav + floating ad */
+  padding-bottom: 120px; /* ruang utk bottom-nav + floating ad */
 }
 
 .feed::-webkit-scrollbar {
@@ -167,7 +167,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 44px 16px 20px;
+  padding: 20px 16px 20px;
   opacity: 0;
   transform: translateY(24px) scale(0.97);
   transition: opacity 0.45s ease, transform 0.45s ease;
@@ -411,7 +411,7 @@ body {
 }
 
 /* -------------------------------------------------
-   MODAL DETAIL (player + list episode)
+   MODAL DETAIL (player)
 ----------------------------------------------------*/
 .modal-backdrop {
   position: fixed;
@@ -488,36 +488,54 @@ body {
   margin-bottom: 4px;
 }
 
-.modal-badges {
+/* Tombol badge episode di header */
+.episode-pill-btn {
   margin-top: 4px;
+  border: none;
+  background: rgba(15, 23, 42, 0.95);
+  border-radius: 999px;
+  padding: 2px 10px;
   font-size: 11px;
-  opacity: 0.9;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #e5e7eb;
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    transform 0.1s ease;
 }
 
-/* Badge Episode */
+.episode-pill-btn i {
+  font-size: 14px;
+}
+
+.episode-pill-btn:hover {
+  background: rgba(30, 64, 175, 0.95);
+  border-color: rgba(129, 140, 248, 0.95);
+  transform: translateY(-1px);
+}
+
+/* label episode di dalam tombol */
 #modalCurrentEpisode {
   font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(55, 65, 81, 0.9);
 }
 
-/* Body: player + episode list */
+/* body modal (isi: player saja) */
 .modal-body {
   display: flex;
   gap: 10px;
   padding: 8px 14px 12px;
   flex: 1;
   min-height: 0;
-  overflow: hidden; /* hanya child yang boleh scroll */
+  overflow: hidden;
 }
 
 /* -------------------------------------------------
    PLAYER CUSTOM VERTIKAL (ala reels)
 ----------------------------------------------------*/
 .modal-player {
-  flex: 1.4;
+  flex: 1;
   min-width: 0;
   position: relative;
   display: flex;
@@ -675,24 +693,72 @@ video::-webkit-media-controls {
 }
 
 /* -------------------------------------------------
-   EPISODE LIST (scroll only list)
+   EPISODE LIST (BOTTOM SHEET MODAL)
 ----------------------------------------------------*/
-.modal-episodes {
-  flex: 0.6;
-  min-width: 0;
-  border-left: 1px solid rgba(31, 41, 55, 0.9);
-  padding-left: 10px;
+.episode-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(10px);
+  z-index: 1100;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.episode-modal-backdrop.visible {
+  display: flex;
+  animation: searchFadeIn 0.22s ease-out forwards;
+}
+
+.episode-modal {
+  width: 100%;
+  max-width: 720px;
+  max-height: 70vh;
+  background: #020617;
+  border-radius: 20px 20px 0 0;
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.95);
+  padding: 10px 14px 14px;
+  transform: translateY(26px);
+  animation: episodeSlideUp 0.25s ease-out forwards;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* hanya grid di dalam yang scroll */
 }
 
-.modal-episodes h3 {
+@keyframes episodeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.episode-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.episode-modal-header span {
   font-size: 13px;
-  margin-bottom: 6px;
+  font-weight: 600;
 }
 
-/* grid yang scroll */
+.episode-modal-close {
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* grid episode di bottom sheet */
 .episode-grid {
   flex: 1;
   display: grid;
@@ -756,7 +822,7 @@ video::-webkit-media-controls {
 }
 
 /* -------------------------------------------------
-   SEARCH MODAL (BOTTOM NAV)
+   SEARCH MODAL
 ----------------------------------------------------*/
 .search-modal {
   position: fixed;
@@ -858,16 +924,7 @@ video::-webkit-media-controls {
   }
 
   .modal-body {
-    flex-direction: column; /* player di atas, list episode di bawah */
-  }
-
-  .modal-episodes {
-    border-left: none;
-    border-top: 1px solid rgba(31, 41, 55, 0.9);
-    padding-left: 0;
-    padding-top: 8px;
-    flex: 1;
-    overflow: hidden;
+    flex-direction: column; /* player di atas */
   }
 
   .video-shell {
