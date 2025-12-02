@@ -9,23 +9,28 @@ $(function () {
 
   // Modal detail
   const $modal = $('#detailModal');
-  const $modalCover = $('#modalCover');
   const $modalTitle = $('#modalTitle');
   const $modalIntro = $('#modalIntro');
   const $modalEpisodeCount = $('#modalEpisodeCount');
-  const $episodeList = $('#episodeList');
+  const $modalCurrentEpisode = $('#modalCurrentEpisode');
   const $playerVideo = $('#playerVideo');
   const $playerLoading = $('#playerLoading');
   const $continueBanner = $('#continueBanner');
   const $continueText = $('#continueText');
   const $continueBtn = $('#continueBtn');
+  const $openEpisodeListBtn = $('#openEpisodeListBtn');
+
+  // Modal grid episode
+  const $episodeListModal = $('#episodeListModal');
+  const $episodeGrid = $('#episodeGrid');
+  const $episodeModalTitle = $('#episodeModalTitle');
 
   // Search modal
   const $searchModal = $('#searchModal');
   const $searchModalInput = $('#searchModalInput');
   const $searchModalBtn = $('#searchModalBtn');
 
-  let currentTab = 'foryou'; // 'foryou' | 'new' | 'rank' | 'search'
+  let currentTab = 'foryou';
   let currentPage = 1;
   let hasMore = true;
   let currentSearch = '';
@@ -33,6 +38,10 @@ $(function () {
   let activeBookId = null;
   let lastLoadedChapterIndex = null;
   let resumeFromTime = null;
+
+  let chaptersData = [];
+  let totalEpisodes = 0;
+  let currentBookTitle = '';
 
   /* ===================== LOADING & PAGER ===================== */
 
@@ -97,7 +106,7 @@ $(function () {
     }
   }
 
-  /* ===================== ADSTERRA DIRECTLINK SETIAP X EPISODE ===================== */
+  /* ===================== ADSTERRA COUNTER ===================== */
 
   function adShownKey(bookId, chapterIndex) {
     return `dramabox_ad_shown_${bookId}_${chapterIndex}`;
@@ -139,36 +148,28 @@ $(function () {
     } catch (e) {}
   }
 
-  // dipanggil saat episode selesai (video.onended)
   function registerEpisodeWatched() {
     let count = getEpisodeCounter();
     count += 1;
-
     const freq = Number(window.AD_FREQUENCY || 5) || 5;
-
     if (count >= freq) {
       localStorage.setItem('dramabox_episode_trigger', '1');
       count = 0;
     }
-
     setEpisodeCounter(count);
   }
 
-  // dipanggil saat episode di-load → kalau trigger aktif dan episode ini belum pernah dapat iklan, arm
   function armAdForEpisode(bookId, chapterIndex) {
     if (!window.AD_DIRECTLINK) {
       adArmed = false;
       return;
     }
-
     if (episodeAdAlreadyShown(bookId, chapterIndex)) {
       adArmed = false;
       return;
     }
-
     const triggered =
       localStorage.getItem('dramabox_episode_trigger') === '1';
-
     if (triggered) {
       adArmed = true;
       markEpisodeAdShown(bookId, chapterIndex);
@@ -178,17 +179,22 @@ $(function () {
     }
   }
 
-  /* ===================== BUILD CARD ===================== */
+  /* ===================== CARD BUILDER ===================== */
 
   function buildCardHTML(item) {
     const corner = item.corner?.name || '';
     const cornerColor = item.corner?.color || '#f97316';
 
+    const escTitle = $('<div>').text(item.title).html();
+    const escIntro = $('<div>').text(item.description || '').html();
+
     return `
       <section
         class="video-card"
         data-book-id="${item.bookId}"
-        data-title="${$('<div>').text(item.title).html()}"
+        data-title="${escTitle}"
+        data-intro="${escIntro}"
+        data-cover="${item.thumbnail || ''}"
       >
         <div class="card-inner">
           <div class="card-cover" style="background-image:url('${
@@ -226,14 +232,12 @@ $(function () {
     `;
   }
 
-  /* ===================== LOAD TAB (AJAX) ===================== */
+  /* ===================== TAB LOADER ===================== */
 
   function loadTab(tab, page = 1, opts = {}) {
     currentTab = tab;
     currentPage = page;
-    if (opts.search !== undefined) {
-      currentSearch = opts.search;
-    }
+    if (opts.search !== undefined) currentSearch = opts.search;
 
     $tabs.removeClass('active');
     $tabs.filter(`[data-tab="${tab}"]`).addClass('active');
@@ -248,11 +252,7 @@ $(function () {
       url = `/api/search?q=${encodeURIComponent(currentSearch)}`;
     }
 
-    $.ajax({
-      url,
-      data: { page },
-      method: 'GET'
-    })
+    $.ajax({ url, data: { page }, method: 'GET' })
       .done((res) => {
         hasMore = !!res.hasMore;
         $feed.empty();
@@ -287,26 +287,21 @@ $(function () {
       });
   }
 
-  /* ===================== EVENTS: TAB, PAGER ===================== */
+  /* ===================== TAB + PAGER EVENTS ===================== */
 
-  // Tab bottom-nav
   $tabs.on('click', function () {
     const tab = $(this).data('tab');
 
-    // tab Search → buka modal, tidak langsung loadTab
     if (tab === 'search') {
       $tabs.removeClass('active');
       $(this).addClass('active');
-
       $searchModal.addClass('visible');
-      // delay kecil biar animasi jalan dulu, lalu fokus
       setTimeout(() => {
         $searchModalInput.val('').focus();
       }, 120);
       return;
     }
 
-    // tab lain → tutup modal search kalau masih terbuka
     $searchModal.removeClass('visible');
 
     if (tab === currentTab) return;
@@ -314,7 +309,6 @@ $(function () {
     loadTab(tab, 1);
   });
 
-  // Pager
   $prevPageBtn.on('click', function () {
     if (currentPage <= 1) return;
     loadTab(currentTab, currentPage - 1);
@@ -325,13 +319,11 @@ $(function () {
     loadTab(currentTab, currentPage + 1);
   });
 
-  /* ===================== SEARCH MODAL HANDLER ===================== */
+  /* ===================== SEARCH MODAL ===================== */
 
-  // klik background → tutup modal
   $searchModal.on('click', function (e) {
     if ($(e.target).is('#searchModal')) {
       $searchModal.removeClass('visible');
-      // kalau lagi di tab search dan tidak ada pencarian, balik ke tab sebelumnya (For You)
       if (!currentSearch) {
         loadTab('foryou', 1);
       }
@@ -341,16 +333,12 @@ $(function () {
   function runSearch() {
     const q = $searchModalInput.val().trim();
     if (!q) return;
-
     currentSearch = q;
     $searchModal.removeClass('visible');
     loadTab('search', 1, { search: q });
   }
 
-  $searchModalBtn.on('click', function () {
-    runSearch();
-  });
-
+  $searchModalBtn.on('click', runSearch);
   $searchModalInput.on('keypress', function (e) {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -358,21 +346,80 @@ $(function () {
     }
   });
 
-  /* ===================== MODAL DETAIL & EPISODE LIST ===================== */
+  /* ===================== EPISODE UI HELPERS ===================== */
+
+  function updateCurrentEpisodeLabel() {
+    if (activeBookId == null || lastLoadedChapterIndex == null) {
+      $modalCurrentEpisode.text('');
+      return;
+    }
+    const total = totalEpisodes || (chaptersData ? chaptersData.length : 0);
+    if (!total) {
+      $modalCurrentEpisode.text('');
+      return;
+    }
+    const epNum = (lastLoadedChapterIndex || 0) + 1;
+    $modalCurrentEpisode.text(`Episode ${epNum} / ${total}`);
+  }
+
+  function renderEpisodeGrid() {
+    if (!chaptersData || !chaptersData.length) {
+      $episodeGrid.html(
+        '<div style="padding:12px;font-size:13px;opacity:0.8;">Tidak ada episode.</div>'
+      );
+      return;
+    }
+
+    const cards = chaptersData
+      .slice()
+      .sort((a, b) => a.index - b.index)
+      .map((c) => {
+        const epNum = c.index + 1;
+        const epTitle = c.name || `Episode ${epNum}`;
+        const isActive = c.index === lastLoadedChapterIndex;
+        const freeBadge = c.isFree
+          ? '<span class="ep-badge">Gratis</span>'
+          : '';
+
+        return `
+          <button class="episode-card${
+            isActive ? ' active' : ''
+          }" data-index="${c.index}">
+            <div class="ep-number">Ep ${epNum}</div>
+            <div class="ep-title">${epTitle}</div>
+            ${freeBadge}
+          </button>
+        `;
+      })
+      .join('');
+
+    $episodeGrid.html(cards);
+  }
+
+  /* ===================== MODAL DETAIL ===================== */
 
   function resetModalState() {
     activeBookId = null;
     lastLoadedChapterIndex = null;
     resumeFromTime = null;
+    chaptersData = [];
+    totalEpisodes = 0;
+    currentBookTitle = '';
     $playerVideo.attr('src', '');
     $playerVideo.get(0)?.pause();
-    $episodeList.empty();
     $continueBanner.addClass('hidden');
+    $modalCurrentEpisode.text('');
   }
 
-  function openDetailModal(bookId) {
+  function openDetailModal(bookId, meta) {
     resetModalState();
     activeBookId = bookId;
+
+    if (meta) {
+      currentBookTitle = meta.title || '';
+      if (meta.title) $modalTitle.text(meta.title);
+      if (meta.intro) $modalIntro.text(meta.intro);
+    }
 
     $modal.addClass('visible');
     showLoading(true);
@@ -383,22 +430,26 @@ $(function () {
       method: 'GET'
     })
       .done((res) => {
-        $modalCover.attr('src', res.cover || '');
-        $modalTitle.text(res.title || '');
-        $modalIntro.text(res.introduction || '');
-        $modalEpisodeCount.text(`${res.chapterCount || 0} episode`);
+        currentBookTitle = res.title || currentBookTitle || '';
+        $modalTitle.text(currentBookTitle || '');
+        $modalIntro.text(res.introduction || meta?.intro || '');
+        totalEpisodes = res.chapterCount || (res.chapters?.length || 0);
+        $modalEpisodeCount.text(`${totalEpisodes} episode`);
 
-        if (!res.chapters || !res.chapters.length) {
-          $episodeList.html('<li>Tidak ada episode.</li>');
+        chaptersData = res.chapters || [];
+
+        if (!chaptersData.length) {
+          $continueBanner.addClass('hidden');
+          renderEpisodeGrid();
           return;
         }
 
         const progress = loadProgress(bookId);
-        let activeIndex = res.chapters[0].index;
+        let activeIndex = chaptersData[0].index;
 
         if (
           progress &&
-          res.chapters.some((c) => c.index === progress.chapterIndex)
+          chaptersData.some((c) => c.index === progress.chapterIndex)
         ) {
           activeIndex = progress.chapterIndex;
           resumeFromTime = progress.currentTime || 0;
@@ -417,34 +468,17 @@ $(function () {
           resumeFromTime = null;
         }
 
-        const items = res.chapters
-          .map((c) => {
-            const isActive = c.index === activeIndex;
-            const freeBadge = c.isFree
-              ? '<span class="badge-free">Gratis</span>'
-              : '';
+        lastLoadedChapterIndex = activeIndex;
+        updateCurrentEpisodeLabel();
+        renderEpisodeGrid();
 
-            // fallback judul episode kalau kosong
-            const epTitle = c.name || `Episode ${c.index + 1}`;
-
-            return `
-              <li data-index="${c.index}" ${
-              isActive ? 'class="active"' : ''
-            }>
-                <span>Ep ${c.index + 1}. ${epTitle}</span>
-                ${freeBadge}
-              </li>
-            `;
-          })
-          .join('');
-
-        $episodeList.html(items);
-
-        // AUTO PLAY episode (dengan kemungkinan resume)
         loadEpisode(activeBookId, activeIndex, { resume: true });
       })
       .fail(() => {
-        $episodeList.html('<li>Gagal memuat daftar episode.</li>');
+        $modalIntro.text('Gagal memuat informasi drama.');
+        chaptersData = [];
+        totalEpisodes = 0;
+        renderEpisodeGrid();
       })
       .always(() => {
         showLoading(false);
@@ -456,11 +490,7 @@ $(function () {
     resetModalState();
   }
 
-  $('.modal-close').on('click', function () {
-    closeDetailModal();
-  });
-
-  // klik backdrop tutup modal
+  $('.modal-close').on('click', closeDetailModal);
   $modal.on('click', function (e) {
     if ($(e.target).is('#detailModal')) {
       closeDetailModal();
@@ -476,7 +506,14 @@ $(function () {
       const $card = $(this).closest('.video-card');
       const bookId = $card.data('book-id');
       if (!bookId) return;
-      openDetailModal(bookId);
+
+      const meta = {
+        cover: $card.data('cover') || '',
+        title: $card.data('title') || '',
+        intro: $card.data('intro') || ''
+      };
+
+      openDetailModal(bookId, meta);
     }
   );
 
@@ -489,20 +526,7 @@ $(function () {
     });
   });
 
-  // Klik episode di list
-  $episodeList.on('click', 'li', function () {
-    const $li = $(this);
-    const idx = $li.data('index');
-    if (idx === undefined) return;
-    $episodeList.find('li').removeClass('active');
-    $li.addClass('active');
-    resumeFromTime = null; // user pilih manual, jangan resume
-    if (activeBookId) {
-      loadEpisode(activeBookId, idx, { resume: false });
-    }
-  });
-
-  // Tombol "Lanjut" di banner
+  // Continue button
   $continueBtn.on('click', function () {
     const progress = loadProgress(activeBookId);
     if (!progress) return;
@@ -510,10 +534,44 @@ $(function () {
     const idx = progress.chapterIndex;
     resumeFromTime = progress.currentTime || 0;
 
-    $episodeList.find('li').removeClass('active');
-    $episodeList.find(`li[data-index="${idx}"]`).addClass('active');
-
+    lastLoadedChapterIndex = idx;
+    updateCurrentEpisodeLabel();
+    renderEpisodeGrid();
     loadEpisode(activeBookId, idx, { resume: true });
+  });
+
+  /* ===================== EPISODE LIST MODAL (GRID) ===================== */
+
+  $openEpisodeListBtn.on('click', function () {
+    if (!chaptersData || !chaptersData.length) return;
+    $episodeModalTitle.text(
+      currentBookTitle ? `Daftar Episode — ${currentBookTitle}` : 'Daftar Episode'
+    );
+    renderEpisodeGrid();
+    $episodeListModal.addClass('visible');
+  });
+
+  $('.episode-modal-close').on('click', function () {
+    $episodeListModal.removeClass('visible');
+  });
+
+  $episodeListModal.on('click', function (e) {
+    if ($(e.target).is('#episodeListModal')) {
+      $episodeListModal.removeClass('visible');
+    }
+  });
+
+  $episodeGrid.on('click', '.episode-card', function () {
+    const idx = $(this).data('index');
+    if (idx === undefined) return;
+    resumeFromTime = null;
+    lastLoadedChapterIndex = idx;
+    updateCurrentEpisodeLabel();
+    renderEpisodeGrid();
+    $episodeListModal.removeClass('visible');
+    if (activeBookId) {
+      loadEpisode(activeBookId, idx, { resume: false });
+    }
   });
 
   /* ===================== LOAD EPISODE + AUTO NEXT ===================== */
@@ -523,15 +581,14 @@ $(function () {
     lastLoadedChapterIndex = Number(chapterIndex) || 0;
     const shouldResume = !!opts.resume;
 
-    // ARM IKLAN UNTUK EPISODE INI (kalau kena giliran)
     armAdForEpisode(bookId, lastLoadedChapterIndex);
+    updateCurrentEpisodeLabel();
+    renderEpisodeGrid();
 
     $playerLoading.removeClass('hidden');
     $playerVideo.attr('src', '');
     const videoEl = $playerVideo.get(0);
-    if (videoEl) {
-      videoEl.pause();
-    }
+    if (videoEl) videoEl.pause();
 
     $.ajax({
       url: '/api/watch',
@@ -541,7 +598,6 @@ $(function () {
       .done((res) => {
         if (res.videoUrl) {
           $playerVideo.attr('src', res.videoUrl);
-
           const v = $playerVideo.get(0);
           if (!v) return;
 
@@ -555,9 +611,7 @@ $(function () {
             }
             v
               .play()
-              .catch(() => {
-                // gesture error, abaikan
-              });
+              .catch(() => {});
           });
 
           $(v).on('timeupdate', function () {
@@ -572,19 +626,25 @@ $(function () {
           $(v).on('ended', function () {
             if (!activeBookId) return;
 
-            // Daftarkan episode selesai → untuk frekuensi iklan
             registerEpisodeWatched();
 
-            const $current = $episodeList.find('li.active').first();
-            const $next = $current.next('li');
+            if (!chaptersData || !chaptersData.length) {
+              clearProgress(activeBookId);
+              return;
+            }
 
-            if ($next.length) {
-              const nextIndex = $next.data('index');
-              $episodeList.find('li').removeClass('active');
-              $next.addClass('active');
+            const sorted = chaptersData.slice().sort((a, b) => a.index - b.index);
+            const currentEpIndex = sorted.findIndex(
+              (c) => c.index === lastLoadedChapterIndex
+            );
 
+            if (currentEpIndex >= 0 && currentEpIndex < sorted.length - 1) {
+              const nextIndex = sorted[currentEpIndex + 1].index;
               saveProgress(activeBookId, nextIndex, 0);
               resumeFromTime = 0;
+              lastLoadedChapterIndex = nextIndex;
+              updateCurrentEpisodeLabel();
+              renderEpisodeGrid();
               loadEpisode(activeBookId, nextIndex, { resume: false });
             } else {
               clearProgress(activeBookId);
@@ -597,17 +657,11 @@ $(function () {
       });
   }
 
-  /* ===================== DIRECTLINK CLICK HANDLER ===================== */
+  /* ===================== AD DIRECTLINK HANDLER ===================== */
 
-  // Klik apapun di dalam modal -> kalau adArmed, tembak directlink sekali
   $modal.on('click', function (e) {
     const $target = $(e.target);
-
-    // skip kalau klik tombol close
-    if ($target.closest('.modal-close').length) {
-      return;
-    }
-
+    if ($target.closest('.modal-close').length) return;
     if (adArmed && window.AD_DIRECTLINK) {
       adArmed = false;
       if (activeBookId != null && lastLoadedChapterIndex != null) {
@@ -619,6 +673,5 @@ $(function () {
 
   /* ===================== INIT ===================== */
 
-  // Mulai dari tab For You
   loadTab('foryou', 1);
 });
