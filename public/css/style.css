@@ -90,9 +90,7 @@ body {
   color: #f97316;
 }
 
-/* -------------------------------------------------
-   SEARCH BAR
-----------------------------------------------------*/
+/* (search-bar lama dibiarkan, walau tidak dipakai) */
 .search-bar {
   display: flex;
   align-items: center;
@@ -102,39 +100,6 @@ body {
   background: rgba(15, 23, 42, 0.95);
   border: 1px solid rgba(31, 41, 55, 0.9);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8);
-}
-
-.search-bar input {
-  border: none;
-  background: transparent;
-  outline: none;
-  color: #e5e7eb;
-  font-size: 13px;
-  width: 150px;
-}
-
-.search-bar input::placeholder {
-  color: #6b7280;
-}
-
-.search-bar button {
-  border: none;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #f97316, #ea580c);
-  color: #020617;
-  box-shadow: 0 8px 18px rgba(248, 113, 113, 0.3);
-  transition: transform 0.15s ease, box-shadow 0.15s ease,
-    filter 0.15s ease;
-}
-
-.search-bar button:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.05);
-  box-shadow: 0 10px 24px rgba(248, 113, 113, 0.35);
 }
 
 /* -------------------------------------------------
@@ -460,10 +425,6 @@ body {
   transform: translateY(-1px);
 }
 
-.tab-search.hidden {
-  display: none !important;
-}
-
 /* -------------------------------------------------
    LOADING OVERLAY
 ----------------------------------------------------*/
@@ -514,7 +475,7 @@ body {
 }
 
 /* -------------------------------------------------
-   MODAL
+   MODAL DETAIL
 ----------------------------------------------------*/
 .modal-backdrop {
   position: fixed;
@@ -748,6 +709,94 @@ body {
 }
 
 /* -------------------------------------------------
+   SEARCH MODAL (BOTTOM NAV)
+----------------------------------------------------*/
+.search-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  z-index: 1100;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 70px;
+}
+
+.search-modal.visible {
+  display: flex;
+  animation: searchFadeIn 0.22s ease-out forwards;
+}
+
+.search-modal-box {
+  width: 90%;
+  max-width: 400px;
+  background: #0f172a;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(55, 65, 81, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transform: translateY(18px);
+  opacity: 0;
+  animation: searchSlideUp 0.25s ease-out forwards;
+}
+
+.search-modal.visible .search-modal-box {
+  animation: searchSlideUp 0.25s ease-out forwards;
+}
+
+.search-modal-box input {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(55, 65, 81, 0.8);
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 14px;
+  outline: none;
+}
+
+.search-modal-box input::placeholder {
+  color: #64748b;
+}
+
+.search-modal-box button {
+  border: none;
+  background: #f97316;
+  color: #020617;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* animasi search */
+@keyframes searchFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes searchSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* -------------------------------------------------
    RESPONSIVE
 ----------------------------------------------------*/
 @media (max-width: 768px) {
@@ -755,10 +804,6 @@ body {
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
-  }
-
-  .search-bar input {
-    width: 135px;
   }
 
   .modal {
