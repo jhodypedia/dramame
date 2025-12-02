@@ -2,9 +2,6 @@
 $(function () {
   const $feed = $('#reelContainer');
   const $loadingOverlay = $('#loadingOverlay');
-  const $pageInfo = $('#pageInfo');
-  const $prevPageBtn = $('#prevPageBtn');
-  const $nextPageBtn = $('#nextPageBtn');
   const $tabs = $('.bottom-nav .tab-btn');
 
   // Modal detail
@@ -30,9 +27,10 @@ $(function () {
   const $searchModalInput = $('#searchModalInput');
   const $searchModalBtn = $('#searchModalBtn');
 
-  let currentTab = 'foryou';
-  let currentPage = 1;
+  let currentTab = 'foryou';   // 'foryou' | 'new' | 'rank' | 'search'
+  let currentPage = 0;         // halaman terakhir yang sudah di-load
   let hasMore = true;
+  let isLoading = false;
   let currentSearch = '';
 
   let activeBookId = null;
@@ -43,7 +41,7 @@ $(function () {
   let totalEpisodes = 0;
   let currentBookTitle = '';
 
-  /* ===================== LOADING & PAGER ===================== */
+  /* ===================== LOADING ===================== */
 
   function showLoading(show) {
     if (show) {
@@ -51,18 +49,6 @@ $(function () {
     } else {
       $loadingOverlay.removeClass('visible');
     }
-  }
-
-  function updatePager() {
-    $pageInfo.text(
-      `Halaman ${currentPage}${
-        currentTab === 'search' && currentSearch
-          ? ' • Pencarian: "' + currentSearch + '"'
-          : ''
-      }`
-    );
-    $prevPageBtn.prop('disabled', currentPage <= 1);
-    $nextPageBtn.prop('disabled', !hasMore);
   }
 
   /* ===================== CONTINUE WATCHING (localStorage) ===================== */
@@ -232,63 +218,110 @@ $(function () {
     `;
   }
 
-  /* ===================== TAB LOADER ===================== */
+  /* ===================== FETCH PAGE (INFINITE SCROLL) ===================== */
 
-  function loadTab(tab, page = 1, opts = {}) {
-    currentTab = tab;
-    currentPage = page;
-    if (opts.search !== undefined) currentSearch = opts.search;
+  function getApiUrl() {
+    if (currentTab === 'new') return '/api/videos/new';
+    if (currentTab === 'rank') return '/api/videos/rank';
+    if (currentTab === 'search') {
+      return `/api/search?q=${encodeURIComponent(currentSearch)}`;
+    }
+    return '/api/videos/foryou';
+  }
 
-    $tabs.removeClass('active');
-    $tabs.filter(`[data-tab="${tab}"]`).addClass('active');
+  // append = false -> load pertama (replace)
+  // append = true  -> load berikutnya (tambah di bawah)
+  function fetchPage(append = false) {
+    if (isLoading) return;
+    if (!append) {
+      // reset untuk load pertama
+      currentPage = 0;
+      hasMore = true;
+    }
+    if (!hasMore && append) return;
 
-    $feed.addClass('fade-out');
-    showLoading(true);
+    const nextPage = append ? currentPage + 1 : 1;
+    const url = getApiUrl();
 
-    let url = '/api/videos/foryou';
-    if (tab === 'new') url = '/api/videos/new';
-    if (tab === 'rank') url = '/api/videos/rank';
-    if (tab === 'search') {
-      url = `/api/search?q=${encodeURIComponent(currentSearch)}`;
+    isLoading = true;
+
+    if (!append) {
+      $feed.addClass('fade-out');
+      showLoading(true);
     }
 
-    $.ajax({ url, data: { page }, method: 'GET' })
+    $.ajax({
+      url,
+      data: { page: nextPage },
+      method: 'GET'
+    })
       .done((res) => {
         hasMore = !!res.hasMore;
-        $feed.empty();
+        const items = res.items || [];
+        const html = items.map(buildCardHTML).join('');
 
-        if (!res.items || !res.items.length) {
-          $feed.html(
-            '<div style="padding:16px;text-align:center;opacity:0.8;">Tidak ada data.</div>'
-          );
+        if (!append) {
+          if (!items.length) {
+            $feed.html(
+              '<div style="padding:16px;text-align:center;opacity:0.8;">Tidak ada data.</div>'
+            );
+          } else {
+            $feed.html(html);
+          }
         } else {
-          const html = res.items.map(buildCardHTML).join('');
-          $feed.html(html);
+          if (items.length) {
+            $feed.append(html);
+          }
+        }
 
-          $('.video-card').each(function (i) {
+        // animasi card untuk batch yang baru
+        if (items.length) {
+          const $cards = append
+            ? $feed
+                .children('.video-card')
+                .slice($feed.children('.video-card').length - items.length)
+            : $feed.children('.video-card');
+
+          $cards.each(function (i) {
             const $card = $(this);
             setTimeout(() => {
               $card.addClass('card-enter');
             }, i * 60);
           });
         }
-        updatePager();
+
+        currentPage = nextPage;
       })
       .fail(() => {
-        $feed.html(
-          '<div style="padding:16px;text-align:center;opacity:0.8;">Gagal memuat data.</div>'
-        );
+        if (!append) {
+          $feed.html(
+            '<div style="padding:16px;text-align:center;opacity:0.8;">Gagal memuat data.</div>'
+          );
+        }
         hasMore = false;
-        updatePager();
       })
       .always(() => {
-        showLoading(false);
-        $feed.removeClass('fade-out');
+        isLoading = false;
+        if (!append) {
+          showLoading(false);
+          $feed.removeClass('fade-out');
+        }
       });
   }
 
-  /* ===================== TAB + PAGER EVENTS ===================== */
+  /* ===================== TAB + INFINITE SCROLL EVENTS ===================== */
 
+  // Scroll di feed -> kalau dekat bawah, auto load next page
+  $feed.on('scroll', function () {
+    if (!hasMore || isLoading) return;
+    const el = this;
+    const threshold = 200; // px sebelum ujung bawah
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - threshold) {
+      fetchPage(true); // append
+    }
+  });
+
+  // Tab bottom-nav
   $tabs.on('click', function () {
     const tab = $(this).data('tab');
 
@@ -304,19 +337,18 @@ $(function () {
 
     $searchModal.removeClass('visible');
 
-    if (tab === currentTab) return;
+    if (tab === currentTab && currentPage > 0) return;
+
+    currentTab = tab;
     currentSearch = '';
-    loadTab(tab, 1);
-  });
+    hasMore = true;
+    isLoading = false;
+    currentPage = 0;
 
-  $prevPageBtn.on('click', function () {
-    if (currentPage <= 1) return;
-    loadTab(currentTab, currentPage - 1);
-  });
-
-  $nextPageBtn.on('click', function () {
-    if (!hasMore) return;
-    loadTab(currentTab, currentPage + 1);
+    $tabs.removeClass('active');
+    $(this).addClass('active');
+    $feed.scrollTop(0);
+    fetchPage(false);
   });
 
   /* ===================== SEARCH MODAL ===================== */
@@ -325,7 +357,14 @@ $(function () {
     if ($(e.target).is('#searchModal')) {
       $searchModal.removeClass('visible');
       if (!currentSearch) {
-        loadTab('foryou', 1);
+        currentTab = 'foryou';
+        $tabs.removeClass('active');
+        $tabs.filter('[data-tab="foryou"]').addClass('active');
+        hasMore = true;
+        isLoading = false;
+        currentPage = 0;
+        $feed.scrollTop(0);
+        fetchPage(false);
       }
     }
   });
@@ -333,9 +372,19 @@ $(function () {
   function runSearch() {
     const q = $searchModalInput.val().trim();
     if (!q) return;
+
+    currentTab = 'search';
     currentSearch = q;
+    hasMore = true;
+    isLoading = false;
+    currentPage = 0;
+
+    $tabs.removeClass('active');
+    $tabs.filter('[data-tab="search"]').addClass('active');
+
+    $feed.scrollTop(0);
     $searchModal.removeClass('visible');
-    loadTab('search', 1, { search: q });
+    fetchPage(false);
   }
 
   $searchModalBtn.on('click', runSearch);
@@ -673,5 +722,6 @@ $(function () {
 
   /* ===================== INIT ===================== */
 
-  loadTab('foryou', 1);
+  // Mulai dari For You page 1
+  fetchPage(false);
 });
