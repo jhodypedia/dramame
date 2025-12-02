@@ -4,6 +4,13 @@
     <meta charset="UTF-8" />
     <title><%= title %></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Remix Icon CDN -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css"
+    />
+
     <link rel="stylesheet" href="/public/css/style.css" />
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -12,9 +19,10 @@
     <div class="bg-gradient"></div>
 
     <div class="app-shell">
+      <!-- TOP BAR -->
       <header class="top-bar">
         <div class="logo">
-          DramaMe<span>Reels</span>
+          Dramame<span>Reels</span>
         </div>
 
         <form id="searchForm" class="search-bar">
@@ -28,20 +36,14 @@
         </form>
       </header>
 
-      <nav class="tabs">
-        <button class="tab-btn active" data-tab="foryou">For You</button>
-        <button class="tab-btn" data-tab="new">Terbaru</button>
-        <button class="tab-btn" data-tab="rank">Top Rank</button>
-        <button class="tab-btn tab-search hidden" data-tab="search">
-          Hasil Pencarian
-        </button>
-      </nav>
+      <!-- (tabs di top dihapus, sekarang ada bottom nav) -->
 
       <!-- Adsterra Top Banner (optional) -->
       <div class="ad-slot ad-top">
         <!-- PASTE SCRIPT BANNER ADSTERRA DI SINI JIKA MAU -->
       </div>
 
+      <!-- FEED -->
       <main id="reelContainer" class="feed">
         <!-- Cards akan di-inject via jQuery -->
 
@@ -50,13 +52,37 @@
           <!-- PASTE SCRIPT NATIVE/INLINE ADSTERRA DI SINI JIKA MAU -->
         </div>
       </main>
-
-      <div class="bottom-bar">
-        <button id="prevPageBtn" class="pager-btn">« Sebelumnya</button>
-        <div id="pageInfo" class="page-info"></div>
-        <button id="nextPageBtn" class="pager-btn">Berikutnya »</button>
-      </div>
     </div>
+
+    <!-- Pager (fixed di atas bottom nav) -->
+    <div class="bottom-bar">
+      <button id="prevPageBtn" class="pager-btn">« Sebelumnya</button>
+      <div id="pageInfo" class="page-info"></div>
+      <button id="nextPageBtn" class="pager-btn">Berikutnya »</button>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+      <button class="tab-btn active" data-tab="foryou">
+        <i class="ri-home-4-fill"></i>
+        <span>For You</span>
+      </button>
+
+      <button class="tab-btn" data-tab="new">
+        <i class="ri-flashlight-fill"></i>
+        <span>Terbaru</span>
+      </button>
+
+      <button class="tab-btn" data-tab="rank">
+        <i class="ri-bar-chart-2-fill"></i>
+        <span>Top Rank</span>
+      </button>
+
+      <button class="tab-btn tab-search hidden" data-tab="search">
+        <i class="ri-search-line"></i>
+        <span>Cari</span>
+      </button>
+    </nav>
 
     <!-- Loading overlay -->
     <div id="loadingOverlay" class="loading-overlay">
@@ -119,7 +145,7 @@
     </div>
 
     <script>
-      window.AD_DIRECTLINK = "<%= adDirectLink ? adDirectLink.replace(/"/g, '&quot;') : '' %>";
+      window.AD_DIRECTLINK = "<%= adDirectLink ? adDirectLink.replace(/\"/g, '&quot;') : '' %>";
       window.AD_FREQUENCY = <%= typeof adFrequency !== 'undefined' ? adFrequency : 5 %>;
     </script>
     <script src="/public/js/main.js"></script>
