@@ -5,12 +5,9 @@ $(function () {
   const $pageInfo = $('#pageInfo');
   const $prevPageBtn = $('#prevPageBtn');
   const $nextPageBtn = $('#nextPageBtn');
-  const $tabs = $('.tab-btn');
-  const $searchForm = $('#searchForm');
-  const $searchInput = $('#searchInput');
-  const $searchTabBtn = $('.tab-search');
+  const $tabs = $('.bottom-nav .tab-btn');
 
-  // Modal elements
+  // Modal detail
   const $modal = $('#detailModal');
   const $modalCover = $('#modalCover');
   const $modalTitle = $('#modalTitle');
@@ -22,6 +19,11 @@ $(function () {
   const $continueBanner = $('#continueBanner');
   const $continueText = $('#continueText');
   const $continueBtn = $('#continueBtn');
+
+  // Search modal
+  const $searchModal = $('#searchModal');
+  const $searchModalInput = $('#searchModalInput');
+  const $searchModalBtn = $('#searchModalBtn');
 
   let currentTab = 'foryou'; // 'foryou' | 'new' | 'rank' | 'search'
   let currentPage = 1;
@@ -285,20 +287,34 @@ $(function () {
       });
   }
 
-  /* ===================== EVENTS: TAB, PAGER, SEARCH ===================== */
+  /* ===================== EVENTS: TAB, PAGER ===================== */
 
+  // Tab bottom-nav
   $tabs.on('click', function () {
     const tab = $(this).data('tab');
-    if (tab === 'search' && !currentSearch) return;
-    if (tab === currentTab) return;
 
-    if (tab !== 'search') {
-      $searchTabBtn.addClass('hidden');
-      currentSearch = '';
+    // tab Search → buka modal, tidak langsung loadTab
+    if (tab === 'search') {
+      $tabs.removeClass('active');
+      $(this).addClass('active');
+
+      $searchModal.addClass('visible');
+      // delay kecil biar animasi jalan dulu, lalu fokus
+      setTimeout(() => {
+        $searchModalInput.val('').focus();
+      }, 120);
+      return;
     }
+
+    // tab lain → tutup modal search kalau masih terbuka
+    $searchModal.removeClass('visible');
+
+    if (tab === currentTab) return;
+    currentSearch = '';
     loadTab(tab, 1);
   });
 
+  // Pager
   $prevPageBtn.on('click', function () {
     if (currentPage <= 1) return;
     loadTab(currentTab, currentPage - 1);
@@ -309,13 +325,37 @@ $(function () {
     loadTab(currentTab, currentPage + 1);
   });
 
-  $searchForm.on('submit', function (e) {
-    e.preventDefault();
-    const q = $searchInput.val().trim();
+  /* ===================== SEARCH MODAL HANDLER ===================== */
+
+  // klik background → tutup modal
+  $searchModal.on('click', function (e) {
+    if ($(e.target).is('#searchModal')) {
+      $searchModal.removeClass('visible');
+      // kalau lagi di tab search dan tidak ada pencarian, balik ke tab sebelumnya (For You)
+      if (!currentSearch) {
+        loadTab('foryou', 1);
+      }
+    }
+  });
+
+  function runSearch() {
+    const q = $searchModalInput.val().trim();
     if (!q) return;
-    $searchTabBtn.removeClass('hidden');
+
     currentSearch = q;
+    $searchModal.removeClass('visible');
     loadTab('search', 1, { search: q });
+  }
+
+  $searchModalBtn.on('click', function () {
+    runSearch();
+  });
+
+  $searchModalInput.on('keypress', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      runSearch();
+    }
   });
 
   /* ===================== MODAL DETAIL & EPISODE LIST ===================== */
@@ -384,7 +424,7 @@ $(function () {
               ? '<span class="badge-free">Gratis</span>'
               : '';
 
-            // 🔥 fallback judul episode biar nggak "undefined"
+            // fallback judul episode kalau kosong
             const epTitle = c.name || `Episode ${c.index + 1}`;
 
             return `
@@ -579,5 +619,6 @@ $(function () {
 
   /* ===================== INIT ===================== */
 
+  // Mulai dari tab For You
   loadTab('foryou', 1);
 });
