@@ -47,22 +47,32 @@ body {
 
 /* Top bar */
 .top-bar {
-  position: relative;
-  z-index: 5;
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent);
+  background: linear-gradient(
+    to bottom,
+    rgba(6, 6, 23, 0.95),
+    rgba(6, 6, 23, 0.4),
+    transparent
+  );
+  backdrop-filter: blur(16px);
 }
 
 .logo {
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  background: linear-gradient(90deg, #f97316, #fb7185, #facc15);
+  -webkit-background-clip: text;
+  color: transparent;
 }
 .logo span {
-  color: #ff2d55;
+  font-weight: 900;
 }
 
 /* Search bar */
@@ -70,11 +80,11 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(15, 23, 42, 0.9);
-  padding: 4px 8px;
+  background: rgba(15, 23, 42, 0.95);
+  padding: 6px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  backdrop-filter: blur(10px);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.8);
 }
 
 .search-bar input {
@@ -83,46 +93,47 @@ body {
   color: #e5e7eb;
   font-size: 13px;
   outline: none;
-  width: 140px;
+  width: 150px;
 }
 
 .search-bar button {
   border: none;
   font-size: 12px;
-  color: #0f172a;
-  background: #facc15;
+  color: #111827;
+  background: linear-gradient(135deg, #facc15, #f97316);
   border-radius: 999px;
-  padding: 4px 10px;
+  padding: 4px 12px;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* Tabs */
 .tabs {
   display: flex;
-  justify-content: center;
-  gap: 6px;
-  padding: 6px 8px 4px;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 6px 16px 4px;
   z-index: 4;
 }
 
 .tab-btn {
   border: none;
   border-radius: 999px;
-  padding: 4px 14px;
+  padding: 6px 16px;
   font-size: 13px;
   cursor: pointer;
-  background: rgba(15, 23, 42, 0.8);
-  color: #e5e7eb;
-  border: 1px solid transparent;
-  transition: all 0.25s ease;
+  background: rgba(15, 23, 42, 0.95);
+  color: #9ca3af;
+  border: 1px solid rgba(31, 41, 55, 0.9);
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.9);
+  transition: all 0.2s ease;
 }
 
 .tab-btn.active {
-  background: #f97316;
-  color: #111827;
-  border-color: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 0 25px rgba(248, 250, 252, 0.25);
+  background: linear-gradient(135deg, #f97316, #ec4899);
+  color: #0b1120;
+  border-color: rgba(248, 250, 252, 0.9);
+  box-shadow: 0 12px 30px rgba(248, 113, 113, 0.45);
 }
 
 .tab-btn:hover:not(.active) {
@@ -210,18 +221,18 @@ body {
   width: 100%;
   max-width: 420px;
   aspect-ratio: 9 / 16;
-  background: radial-gradient(circle at top, #020617, #020617);
-  border-radius: 22px;
+  border-radius: 26px;
   overflow: hidden;
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.95);
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  background: radial-gradient(circle at top, #1f2937, #020617);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .card-inner:hover {
   transform: translateY(-6px) scale(1.02);
-  box-shadow: 0 35px 80px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 32px 84px rgba(0, 0, 0, 0.96);
   border-color: #f97316;
 }
 
@@ -230,9 +241,9 @@ body {
   inset: 0;
   background-size: cover;
   background-position: center;
-  filter: brightness(0.9);
-  transform: scale(1.03);
-  transition: filter 0.3s ease, transform 0.3s ease;
+  filter: brightness(0.95);
+  transform: scale(1.02);
+  transition: filter 0.25s ease, transform 0.25s ease;
 }
 
 .card-inner:hover .card-cover {
@@ -243,7 +254,7 @@ body {
 .card-gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.95), transparent 40%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.98), transparent 45%);
 }
 
 .card-corner {
