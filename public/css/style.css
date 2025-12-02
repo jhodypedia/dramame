@@ -167,10 +167,21 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px 16px 20px;
+  /* Hapus padding vertikal supaya tidak ada celah antar card */
+  padding: 0 16px;
   opacity: 0;
   transform: translateY(24px) scale(0.97);
   transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+/* Beri jarak kecil hanya di card pertama & terakhir,
+   bukan di tengah-tengah antar card */
+.video-card:first-child {
+  padding-top: 16px;
+}
+
+.video-card:last-of-type {
+  padding-bottom: 16px;
 }
 
 .video-card.card-enter {
