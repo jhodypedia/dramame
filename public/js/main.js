@@ -95,13 +95,12 @@ $(function () {
     }
   }
 
-  /* ===================== ADSTERRA DIRECTLINK SETIAP 5 EPISODE ===================== */
+  /* ===================== ADSTERRA DIRECTLINK SETIAP X EPISODE ===================== */
 
   function adShownKey(bookId, chapterIndex) {
     return `dramabox_ad_shown_${bookId}_${chapterIndex}`;
   }
 
-  // global: berapa episode yang sudah ditonton user
   function globalEpisodeCounterKey() {
     return 'dramabox_global_episode_counter';
   }
@@ -138,11 +137,7 @@ $(function () {
     } catch (e) {}
   }
 
-  /**
-   * Dipanggil setiap kali episode selesai (video.onended)
-   * - Tambah counter global
-   * - Jika counter == 5 → set trigger agar episode berikutnya bisa memicu directlink
-   */
+  // dipanggil saat episode selesai (video.onended)
   function registerEpisodeWatched() {
     let count = getEpisodeCounter();
     count += 1;
@@ -157,10 +152,7 @@ $(function () {
     setEpisodeCounter(count);
   }
 
-  /**
-   * Dipanggil ketika episode di-load.
-   * Jika global trigger aktif dan episode ini belum pernah kena iklan, adArmed = true
-   */
+  // dipanggil saat episode di-load → kalau trigger aktif dan episode ini belum pernah dapat iklan, arm
   function armAdForEpisode(bookId, chapterIndex) {
     if (!window.AD_DIRECTLINK) {
       adArmed = false;
@@ -391,11 +383,15 @@ $(function () {
             const freeBadge = c.isFree
               ? '<span class="badge-free">Gratis</span>'
               : '';
+
+            // 🔥 fallback judul episode biar nggak "undefined"
+            const epTitle = c.name || `Episode ${c.index + 1}`;
+
             return `
               <li data-index="${c.index}" ${
               isActive ? 'class="active"' : ''
             }>
-                <span>Ep ${c.index + 1}. ${c.name}</span>
+                <span>Ep ${c.index + 1}. ${epTitle}</span>
                 ${freeBadge}
               </li>
             `;
@@ -424,7 +420,7 @@ $(function () {
     closeDetailModal();
   });
 
-  // Klik backdrop untuk tutup
+  // klik backdrop tutup modal
   $modal.on('click', function (e) {
     if ($(e.target).is('#detailModal')) {
       closeDetailModal();
@@ -551,7 +547,6 @@ $(function () {
               resumeFromTime = 0;
               loadEpisode(activeBookId, nextIndex, { resume: false });
             } else {
-              // kalau tidak ada episode berikutnya, bisa clear progress
               clearProgress(activeBookId);
             }
           });
@@ -578,7 +573,6 @@ $(function () {
       if (activeBookId != null && lastLoadedChapterIndex != null) {
         markEpisodeAdShown(activeBookId, lastLoadedChapterIndex);
       }
-      // buka directlink di tab baru
       window.open(window.AD_DIRECTLINK, '_blank');
     }
   });
