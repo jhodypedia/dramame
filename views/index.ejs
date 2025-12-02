@@ -12,7 +12,6 @@
     />
 
     <link rel="stylesheet" href="/public/css/style.css" />
-    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   </head>
   <body>
@@ -28,16 +27,15 @@
 
       <!-- Adsterra Top Banner (optional) -->
       <div class="ad-slot ad-top">
-        <!-- PASTE SCRIPT BANNER ADSTERRA DI SINI JIKA MAU -->
+        <!-- script banner kalau ada -->
       </div>
 
-      <!-- FEED (INFINITE SCROLL) -->
+      <!-- FEED -->
       <main id="reelContainer" class="feed">
-        <!-- Cards akan di-inject via jQuery -->
+        <!-- cards akan di-inject via JS -->
 
-        <!-- Ad di bawah feed -->
         <div class="ad-slot ad-feed-bottom">
-          <!-- PASTE SCRIPT NATIVE/INLINE ADSTERRA DI SINI JIKA MAU -->
+          <!-- script native ad kalau ada -->
         </div>
       </main>
     </div>
@@ -48,30 +46,27 @@
         <i class="ri-home-4-fill"></i>
         <span>For You</span>
       </button>
-
       <button class="tab-btn" data-tab="new">
         <i class="ri-flashlight-fill"></i>
         <span>Terbaru</span>
       </button>
-
       <button class="tab-btn" data-tab="rank">
         <i class="ri-bar-chart-fill"></i>
         <span>Top Rank</span>
       </button>
-
       <button class="tab-btn" data-tab="search">
         <i class="ri-search-line"></i>
         <span>Cari</span>
       </button>
     </nav>
 
-    <!-- Loading overlay -->
+    <!-- LOADING FULL PAGE -->
     <div id="loadingOverlay" class="loading-overlay">
       <div class="loader"></div>
-      <div class="loading-text">Sedang Memuat...</div>
+      <div class="loading-text">Mengambil data...</div>
     </div>
 
-    <!-- MODAL VIEW: Judul + Player custom + List episode -->
+    <!-- MODAL DETAIL: judul + badge episode (klik) + player -->
     <div id="detailModal" class="modal-backdrop">
       <div class="modal">
         <button class="modal-close">&times;</button>
@@ -79,25 +74,23 @@
         <div class="modal-header">
           <div class="modal-meta">
             <h2 id="modalTitle"></h2>
-            <div class="modal-badges">
+
+            <button id="openEpisodeListBtn" class="episode-pill-btn">
               <span id="modalCurrentEpisode"></span>
-            </div>
+              <i class="ri-arrow-down-s-line"></i>
+            </button>
           </div>
         </div>
 
         <div class="modal-body">
           <div class="modal-player">
             <div class="video-shell">
-              <video
-                id="playerVideo"
-                playsinline
-                preload="metadata"
-              ></video>
+              <video id="playerVideo" playsinline preload="metadata"></video>
 
               <div class="video-overlay-top"></div>
               <div class="video-overlay-bottom"></div>
 
-              <!-- Kontrol custom -->
+              <!-- Custom controls -->
               <div class="video-controls">
                 <button id="playPauseBtn" class="vc-btn">
                   <i class="ri-play-fill"></i>
@@ -133,20 +126,26 @@
               </div>
             </div>
           </div>
-
-          <div class="modal-episodes">
-            <h3>Daftar Episode</h3>
-            <div id="episodeGrid" class="episode-grid">
-              <!-- item episode di-inject via JS -->
-            </div>
-          </div>
         </div>
       </div>
     </div>
 
-    <!-- Floating ad -->
+    <!-- MODAL LIST EPISODE (BOTTOM SHEET) -->
+    <div id="episodeListModal" class="episode-modal-backdrop">
+      <div class="episode-modal">
+        <div class="episode-modal-header">
+          <span id="episodeModalTitle">Daftar Episode</span>
+          <button class="episode-modal-close" type="button">&times;</button>
+        </div>
+        <div id="episodeGrid" class="episode-grid">
+          <!-- episode cards via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- FLOATING AD (opsional) -->
     <div class="ad-slot ad-floating">
-      <!-- PASTE SCRIPT ADSTERRA FLOATING JIKA MAU -->
+      <!-- tombol/directlink atau script social bar -->
     </div>
 
     <!-- SEARCH MODAL -->
