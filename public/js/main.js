@@ -7,20 +7,19 @@ $(function () {
   // Modal detail
   const $modal = $('#detailModal');
   const $modalTitle = $('#modalTitle');
-  const $modalIntro = $('#modalIntro');
-  const $modalEpisodeCount = $('#modalEpisodeCount');
   const $modalCurrentEpisode = $('#modalCurrentEpisode');
   const $playerVideo = $('#playerVideo');
   const $playerLoading = $('#playerLoading');
-  const $continueBanner = $('#continueBanner');
-  const $continueText = $('#continueText');
-  const $continueBtn = $('#continueBtn');
-  const $openEpisodeListBtn = $('#openEpisodeListBtn');
-
-  // Modal grid episode
-  const $episodeListModal = $('#episodeListModal');
   const $episodeGrid = $('#episodeGrid');
-  const $episodeModalTitle = $('#episodeModalTitle');
+
+  // Player controls
+  const $playPauseBtn = $('#playPauseBtn');
+  const $seekBar = $('#seekBar');
+  const $currentTimeLabel = $('#currentTimeLabel');
+  const $durationLabel = $('#durationLabel');
+  const $muteBtn = $('#muteBtn');
+  const $fullscreenBtn = $('#fullscreenBtn');
+  const $videoShell = $('.video-shell');
 
   // Search modal
   const $searchModal = $('#searchModal');
@@ -28,7 +27,7 @@ $(function () {
   const $searchModalBtn = $('#searchModalBtn');
 
   let currentTab = 'foryou';   // 'foryou' | 'new' | 'rank' | 'search'
-  let currentPage = 0;         // halaman terakhir yang sudah di-load
+  let currentPage = 0;
   let hasMore = true;
   let isLoading = false;
   let currentSearch = '';
@@ -40,6 +39,45 @@ $(function () {
   let chaptersData = [];
   let totalEpisodes = 0;
   let currentBookTitle = '';
+
+  // Wake Lock (keep screen on)
+  let wakeLock = null;
+
+  async function requestWakeLock() {
+    try {
+      if ('wakeLock' in navigator && !wakeLock) {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => {
+          wakeLock = null;
+        });
+      }
+    } catch (err) {
+      // bisa gagal kalau OS/browse tidak support
+      console.log('WakeLock error', err);
+    }
+  }
+
+  async function releaseWakeLock() {
+    try {
+      if (wakeLock) {
+        await wakeLock.release();
+        wakeLock = null;
+      }
+    } catch (err) {
+      console.log('WakeLock release error', err);
+    }
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      const v = $playerVideo.get(0);
+      if (v && !v.paused) {
+        requestWakeLock();
+      }
+    } else {
+      releaseWakeLock();
+    }
+  });
 
   /* ===================== LOADING ===================== */
 
@@ -229,12 +267,9 @@ $(function () {
     return '/api/videos/foryou';
   }
 
-  // append = false -> load pertama (replace)
-  // append = true  -> load berikutnya (tambah di bawah)
   function fetchPage(append = false) {
     if (isLoading) return;
     if (!append) {
-      // reset untuk load pertama
       currentPage = 0;
       hasMore = true;
     }
@@ -274,7 +309,6 @@ $(function () {
           }
         }
 
-        // animasi card untuk batch yang baru
         if (items.length) {
           const $cards = append
             ? $feed
@@ -311,17 +345,15 @@ $(function () {
 
   /* ===================== TAB + INFINITE SCROLL EVENTS ===================== */
 
-  // Scroll di feed -> kalau dekat bawah, auto load next page
   $feed.on('scroll', function () {
     if (!hasMore || isLoading) return;
     const el = this;
-    const threshold = 200; // px sebelum ujung bawah
+    const threshold = 200;
     if (el.scrollTop + el.clientHeight >= el.scrollHeight - threshold) {
-      fetchPage(true); // append
+      fetchPage(true);
     }
   });
 
-  // Tab bottom-nav
   $tabs.on('click', function () {
     const tab = $(this).data('tab');
 
@@ -455,9 +487,11 @@ $(function () {
     totalEpisodes = 0;
     currentBookTitle = '';
     $playerVideo.attr('src', '');
-    $playerVideo.get(0)?.pause();
-    $continueBanner.addClass('hidden');
+    const v = $playerVideo.get(0);
+    if (v) v.pause();
     $modalCurrentEpisode.text('');
+    $episodeGrid.empty();
+    releaseWakeLock();
   }
 
   function openDetailModal(bookId, meta) {
@@ -467,7 +501,6 @@ $(function () {
     if (meta) {
       currentBookTitle = meta.title || '';
       if (meta.title) $modalTitle.text(meta.title);
-      if (meta.intro) $modalIntro.text(meta.intro);
     }
 
     $modal.addClass('visible');
@@ -481,14 +514,11 @@ $(function () {
       .done((res) => {
         currentBookTitle = res.title || currentBookTitle || '';
         $modalTitle.text(currentBookTitle || '');
-        $modalIntro.text(res.introduction || meta?.intro || '');
         totalEpisodes = res.chapterCount || (res.chapters?.length || 0);
-        $modalEpisodeCount.text(`${totalEpisodes} episode`);
 
         chaptersData = res.chapters || [];
 
         if (!chaptersData.length) {
-          $continueBanner.addClass('hidden');
           renderEpisodeGrid();
           return;
         }
@@ -502,18 +532,7 @@ $(function () {
         ) {
           activeIndex = progress.chapterIndex;
           resumeFromTime = progress.currentTime || 0;
-
-          const epNumber = progress.chapterIndex + 1;
-          $continueText.text(
-            `Lanjut tonton dari episode ${epNumber}${
-              resumeFromTime
-                ? ` (sekitar menit ${Math.floor(resumeFromTime / 60)})`
-                : ''
-            }`
-          );
-          $continueBanner.removeClass('hidden');
         } else {
-          $continueBanner.addClass('hidden');
           resumeFromTime = null;
         }
 
@@ -524,10 +543,9 @@ $(function () {
         loadEpisode(activeBookId, activeIndex, { resume: true });
       })
       .fail(() => {
-        $modalIntro.text('Gagal memuat informasi drama.');
-        chaptersData = [];
-        totalEpisodes = 0;
-        renderEpisodeGrid();
+        $episodeGrid.html(
+          '<div style="padding:12px;font-size:13px;opacity:0.8;">Gagal memuat episode.</div>'
+        );
       })
       .always(() => {
         showLoading(false);
@@ -575,40 +593,7 @@ $(function () {
     });
   });
 
-  // Continue button
-  $continueBtn.on('click', function () {
-    const progress = loadProgress(activeBookId);
-    if (!progress) return;
-
-    const idx = progress.chapterIndex;
-    resumeFromTime = progress.currentTime || 0;
-
-    lastLoadedChapterIndex = idx;
-    updateCurrentEpisodeLabel();
-    renderEpisodeGrid();
-    loadEpisode(activeBookId, idx, { resume: true });
-  });
-
-  /* ===================== EPISODE LIST MODAL (GRID) ===================== */
-
-  $openEpisodeListBtn.on('click', function () {
-    if (!chaptersData || !chaptersData.length) return;
-    $episodeModalTitle.text(
-      currentBookTitle ? `Daftar Episode — ${currentBookTitle}` : 'Daftar Episode'
-    );
-    renderEpisodeGrid();
-    $episodeListModal.addClass('visible');
-  });
-
-  $('.episode-modal-close').on('click', function () {
-    $episodeListModal.removeClass('visible');
-  });
-
-  $episodeListModal.on('click', function (e) {
-    if ($(e.target).is('#episodeListModal')) {
-      $episodeListModal.removeClass('visible');
-    }
-  });
+  /* ===================== EPISODE GRID CLICK ===================== */
 
   $episodeGrid.on('click', '.episode-card', function () {
     const idx = $(this).data('index');
@@ -617,11 +602,22 @@ $(function () {
     lastLoadedChapterIndex = idx;
     updateCurrentEpisodeLabel();
     renderEpisodeGrid();
-    $episodeListModal.removeClass('visible');
     if (activeBookId) {
       loadEpisode(activeBookId, idx, { resume: false });
     }
   });
+
+  /* ===================== FORMAT WAKTU ===================== */
+
+  function formatTime(sec) {
+    if (!isFinite(sec)) return '00:00';
+    const s = Math.floor(sec);
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    return (
+      String(m).padStart(2, '0') + ':' + String(r).padStart(2, '0')
+    );
+  }
 
   /* ===================== LOAD EPISODE + AUTO NEXT ===================== */
 
@@ -636,8 +632,9 @@ $(function () {
 
     $playerLoading.removeClass('hidden');
     $playerVideo.attr('src', '');
-    const videoEl = $playerVideo.get(0);
-    if (videoEl) videoEl.pause();
+    const v = $playerVideo.get(0);
+    if (!v) return;
+    v.pause();
 
     $.ajax({
       url: '/api/watch',
@@ -645,65 +642,147 @@ $(function () {
       method: 'GET'
     })
       .done((res) => {
-        if (res.videoUrl) {
-          $playerVideo.attr('src', res.videoUrl);
-          const v = $playerVideo.get(0);
-          if (!v) return;
+        if (!res.videoUrl) return;
+        $playerVideo.attr('src', res.videoUrl);
 
-          $(v).off('timeupdate loadedmetadata ended');
+        $(v).off('.episode');
 
-          $(v).on('loadedmetadata', function () {
-            if (shouldResume && typeof resumeFromTime === 'number') {
-              if (resumeFromTime < v.duration) {
-                v.currentTime = resumeFromTime;
-              }
+        $(v).on('loadedmetadata.episode', function () {
+          if (shouldResume && typeof resumeFromTime === 'number') {
+            if (resumeFromTime < v.duration) {
+              v.currentTime = resumeFromTime;
             }
-            v
-              .play()
-              .catch(() => {});
-          });
+          }
+          $durationLabel.text(formatTime(v.duration));
+          $currentTimeLabel.text(formatTime(v.currentTime || 0));
+          $seekBar.val(
+            v.duration ? ((v.currentTime || 0) / v.duration) * 100 : 0
+          );
 
-          $(v).on('timeupdate', function () {
-            if (!activeBookId) return;
-            if (!v.duration) return;
-            const ct = v.currentTime || 0;
-            if (Math.floor(ct) % 3 === 0) {
-              saveProgress(activeBookId, lastLoadedChapterIndex, ct);
-            }
-          });
+          v.play().catch(() => {});
+        });
 
-          $(v).on('ended', function () {
-            if (!activeBookId) return;
+        $(v).on('timeupdate.episode', function () {
+          if (!v.duration) return;
+          const ct = v.currentTime || 0;
+          $currentTimeLabel.text(formatTime(ct));
+          $seekBar.val((ct / v.duration) * 100);
+          if (!activeBookId) return;
+          if (Math.floor(ct) % 3 === 0) {
+            saveProgress(activeBookId, lastLoadedChapterIndex, ct);
+          }
+        });
 
-            registerEpisodeWatched();
+        $(v).on('ended.episode', function () {
+          if (!activeBookId) return;
+          registerEpisodeWatched();
 
-            if (!chaptersData || !chaptersData.length) {
-              clearProgress(activeBookId);
-              return;
-            }
+          if (!chaptersData || !chaptersData.length) {
+            clearProgress(activeBookId);
+            return;
+          }
 
-            const sorted = chaptersData.slice().sort((a, b) => a.index - b.index);
-            const currentEpIndex = sorted.findIndex(
-              (c) => c.index === lastLoadedChapterIndex
-            );
+          const sorted = chaptersData
+            .slice()
+            .sort((a, b) => a.index - b.index);
+          const currentEpIndex = sorted.findIndex(
+            (c) => c.index === lastLoadedChapterIndex
+          );
 
-            if (currentEpIndex >= 0 && currentEpIndex < sorted.length - 1) {
-              const nextIndex = sorted[currentEpIndex + 1].index;
-              saveProgress(activeBookId, nextIndex, 0);
-              resumeFromTime = 0;
-              lastLoadedChapterIndex = nextIndex;
-              updateCurrentEpisodeLabel();
-              renderEpisodeGrid();
-              loadEpisode(activeBookId, nextIndex, { resume: false });
-            } else {
-              clearProgress(activeBookId);
-            }
-          });
-        }
+          if (currentEpIndex >= 0 && currentEpIndex < sorted.length - 1) {
+            const nextIndex = sorted[currentEpIndex + 1].index;
+            saveProgress(activeBookId, nextIndex, 0);
+            resumeFromTime = 0;
+            lastLoadedChapterIndex = nextIndex;
+            updateCurrentEpisodeLabel();
+            renderEpisodeGrid();
+            loadEpisode(activeBookId, nextIndex, { resume: false });
+          } else {
+            clearProgress(activeBookId);
+          }
+        });
       })
       .always(() => {
         $playerLoading.addClass('hidden');
       });
+  }
+
+  /* ===================== PLAYER CONTROLS (CUSTOM) ===================== */
+
+  const videoEl = $playerVideo.get(0);
+
+  function syncPlayPauseIcon() {
+    if (!videoEl) return;
+    if (videoEl.paused) {
+      $playPauseBtn.find('i').attr('class', 'ri-play-fill');
+    } else {
+      $playPauseBtn.find('i').attr('class', 'ri-pause-fill');
+    }
+  }
+
+  $playPauseBtn.on('click', function () {
+    if (!videoEl) return;
+    if (videoEl.paused) {
+      videoEl.play().catch(() => {});
+    } else {
+      videoEl.pause();
+    }
+  });
+
+  $playerVideo.on('click', function () {
+    if (videoEl.paused) {
+      videoEl.play().catch(() => {});
+    } else {
+      videoEl.pause();
+    }
+  });
+
+  $seekBar.on('input', function () {
+    if (!videoEl || !videoEl.duration) return;
+    const pct = parseFloat($seekBar.val()) || 0;
+    const newTime = (pct / 100) * videoEl.duration;
+    videoEl.currentTime = newTime;
+    $currentTimeLabel.text(formatTime(newTime));
+  });
+
+  $muteBtn.on('click', function () {
+    if (!videoEl) return;
+    videoEl.muted = !videoEl.muted;
+    $muteBtn
+      .find('i')
+      .attr(
+        'class',
+        videoEl.muted ? 'ri-volume-mute-fill' : 'ri-volume-up-fill'
+      );
+  });
+
+  $fullscreenBtn.on('click', function () {
+    const elem = $videoShell.get(0);
+    if (!elem) return;
+
+    if (
+      document.fullscreenElement === elem ||
+      document.webkitFullscreenElement === elem
+    ) {
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen)
+        document.webkitExitFullscreen();
+    } else {
+      if (elem.requestFullscreen) elem.requestFullscreen();
+      else if (elem.webkitRequestFullscreen)
+        elem.webkitRequestFullscreen();
+    }
+  });
+
+  if (videoEl) {
+    $(videoEl).on('play.player', function () {
+      syncPlayPauseIcon();
+      requestWakeLock();
+    });
+    $(videoEl).on('pause.player', function () {
+      syncPlayPauseIcon();
+      releaseWakeLock();
+    });
   }
 
   /* ===================== AD DIRECTLINK HANDLER ===================== */
@@ -722,6 +801,5 @@ $(function () {
 
   /* ===================== INIT ===================== */
 
-  // Mulai dari For You page 1
   fetchPage(false);
 });
