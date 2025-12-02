@@ -708,6 +708,171 @@ body {
   color: #bbf7d0;
 }
 
+/* Tombol LIST EPISODE di header modal */
+.episode-list-btn {
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  background: rgba(15, 23, 42, 0.95);
+  color: #e5e7eb;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: fit-content;
+  align-self: center;
+  margin-right: 6px;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.episode-list-btn i {
+  font-size: 16px;
+}
+
+.episode-list-btn:hover {
+  background: rgba(24, 35, 58, 0.95);
+  border-color: rgba(249, 115, 22, 0.8);
+  transform: translateY(-1px);
+}
+
+/* badge episode aktif di header */
+#modalCurrentEpisode {
+  margin-left: 8px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(55, 65, 81, 0.9);
+}
+
+/* MODAL GRID EPISODE */
+.episode-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(10px);
+  z-index: 1100;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.episode-modal-backdrop.visible {
+  display: flex;
+  animation: searchFadeIn 0.22s ease-out forwards;
+}
+
+.episode-modal {
+  width: 100%;
+  max-width: 720px;
+  max-height: 70vh;
+  background: #020617;
+  border-radius: 20px 20px 0 0;
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.95);
+  padding: 10px 14px 14px;
+  transform: translateY(26px);
+  animation: episodeSlideUp 0.25s ease-out forwards;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes episodeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.episode-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.episode-modal-header span {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.episode-modal-close {
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* GRID */
+.episode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.episode-grid::-webkit-scrollbar {
+  width: 3px;
+}
+.episode-grid::-webkit-scrollbar-thumb {
+  background: rgba(55, 65, 81, 0.9);
+  border-radius: 999px;
+}
+
+.episode-card {
+  border-radius: 12px;
+  padding: 8px;
+  border: 1px solid rgba(31, 41, 55, 0.9);
+  background: rgba(15, 23, 42, 0.95);
+  cursor: pointer;
+  font-size: 11px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: border-color 0.15s ease, background 0.15s ease,
+    transform 0.1s ease;
+}
+
+.episode-card:hover {
+  border-color: rgba(148, 163, 184, 0.9);
+  transform: translateY(-1px);
+}
+
+.episode-card.active {
+  background: rgba(249, 115, 22, 0.95);
+  border-color: rgba(248, 250, 252, 0.9);
+  color: #020617;
+}
+
+.ep-number {
+  font-weight: 700;
+}
+
+.ep-title {
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+.ep-badge {
+  align-self: flex-start;
+  margin-top: 2px;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(22, 163, 74, 0.25);
+  color: #bbf7d0;
+}
+
 /* -------------------------------------------------
    SEARCH MODAL (BOTTOM NAV)
 ----------------------------------------------------*/
