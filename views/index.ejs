@@ -19,10 +19,10 @@
     <div class="bg-gradient"></div>
 
     <div class="app-shell">
-      <!-- TOP BAR (tanpa search) -->
+      <!-- TOP BAR -->
       <header class="top-bar">
         <div class="logo">
-          Dramabox<span>Reels</span>
+          Drama<span>Me</span>
         </div>
       </header>
 
@@ -49,7 +49,7 @@
       <button id="nextPageBtn" class="pager-btn">Berikutnya »</button>
     </div>
 
-    <!-- BOTTOM NAV dengan SEARCH -->
+    <!-- BOTTOM NAV -->
     <nav class="bottom-nav">
       <button class="tab-btn active" data-tab="foryou">
         <i class="ri-home-4-fill"></i>
@@ -78,20 +78,18 @@
       <div class="loading-text">Mengambil data...</div>
     </div>
 
-    <!-- Modal detail -->
+    <!-- Modal detail: TANPA COVER KECIL -->
     <div id="detailModal" class="modal-backdrop">
       <div class="modal">
         <button class="modal-close">&times;</button>
 
         <div class="modal-header">
-          <div class="modal-cover-wrap">
-            <img id="modalCover" src="" alt="cover" />
-          </div>
           <div class="modal-meta">
             <h2 id="modalTitle"></h2>
             <p id="modalIntro"></p>
             <div class="modal-badges">
               <span id="modalEpisodeCount"></span>
+              <span id="modalCurrentEpisode"></span>
             </div>
 
             <div id="continueBanner" class="continue-banner hidden">
@@ -99,6 +97,11 @@
               <button id="continueBtn" type="button">Lanjut</button>
             </div>
           </div>
+
+          <button id="openEpisodeListBtn" class="episode-list-btn">
+            <i class="ri-play-list-2-line"></i>
+            <span>List Episode</span>
+          </button>
         </div>
 
         <div class="modal-body">
@@ -114,15 +117,19 @@
               <span>Memuat episode...</span>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
 
-          <div class="modal-episodes">
-            <h3>Daftar Episode</h3>
-            <ul id="episodeList"></ul>
-
-            <div class="ad-slot ad-modal">
-              <!-- Ad di dalam modal (opsional) -->
-            </div>
-          </div>
+    <!-- Modal GRID LIST EPISODE -->
+    <div id="episodeListModal" class="episode-modal-backdrop">
+      <div class="episode-modal">
+        <div class="episode-modal-header">
+          <span id="episodeModalTitle">Daftar Episode</span>
+          <button class="episode-modal-close" type="button">&times;</button>
+        </div>
+        <div id="episodeGrid" class="episode-grid">
+          <!-- item grid di-inject via JS -->
         </div>
       </div>
     </div>
@@ -132,7 +139,7 @@
       <!-- PASTE SCRIPT ADSTERRA FLOATING JIKA MAU -->
     </div>
 
-    <!-- SEARCH MODAL (untuk tab Cari) -->
+    <!-- SEARCH MODAL -->
     <div id="searchModal" class="search-modal">
       <div class="search-modal-box">
         <input
