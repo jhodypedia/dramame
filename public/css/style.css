@@ -90,18 +90,6 @@ body {
   color: #f97316;
 }
 
-/* (search-bar lama dibiarkan, walau tidak dipakai) */
-.search-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(31, 41, 55, 0.9);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8);
-}
-
 /* -------------------------------------------------
    AD SLOTS
 ----------------------------------------------------*/
@@ -143,7 +131,7 @@ body {
 }
 
 /* -------------------------------------------------
-   FEED (VERTICAL REELS)
+   FEED (VERTICAL REELS, INFINITE SCROLL)
 ----------------------------------------------------*/
 .feed {
   position: relative;
@@ -151,7 +139,7 @@ body {
   flex: 1;
   overflow-y: auto;
   scroll-snap-type: y mandatory;
-  padding-bottom: 135px; /* ruang untuk pager + bottom nav */
+  padding-bottom: 120px; /* ruang bottom-nav + floating ad */
 }
 
 .feed::-webkit-scrollbar {
@@ -322,58 +310,6 @@ body {
 }
 
 /* -------------------------------------------------
-   PAGER (DI ATAS BOTTOM NAV)
-----------------------------------------------------*/
-.bottom-bar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: calc(56px + env(safe-area-inset-bottom));
-  z-index: 30;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 4px 10px;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.95),
-    rgba(0, 0, 0, 0.6),
-    transparent
-  );
-}
-
-.pager-btn {
-  border: none;
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-size: 12px;
-  cursor: pointer;
-  background: rgba(15, 23, 42, 0.95);
-  color: #e5e7eb;
-  border: 1px solid rgba(55, 65, 81, 0.9);
-  transition: background 0.15s ease, transform 0.15s ease,
-    border-color 0.15s ease;
-}
-
-.pager-btn:hover:not(:disabled) {
-  background: rgba(24, 35, 58, 0.95);
-  border-color: rgba(249, 115, 22, 0.8);
-  transform: translateY(-1px);
-}
-
-.pager-btn:disabled {
-  opacity: 0.25;
-  cursor: default;
-}
-
-.page-info {
-  font-size: 12px;
-  opacity: 0.8;
-}
-
-/* -------------------------------------------------
    BOTTOM NAV
 ----------------------------------------------------*/
 .bottom-nav {
@@ -539,18 +475,7 @@ body {
   gap: 14px;
   padding: 10px 14px 6px;
   border-bottom: 1px solid rgba(31, 41, 55, 0.9);
-}
-
-.modal-cover-wrap {
-  width: 80px;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid rgba(55, 65, 81, 0.9);
-}
-
-.modal-cover-wrap img {
-  width: 100%;
-  display: block;
+  align-items: flex-start;
 }
 
 .modal-meta {
@@ -574,6 +499,16 @@ body {
   margin-top: 4px;
   font-size: 11px;
   opacity: 0.9;
+}
+
+/* badge episode aktif di header */
+#modalCurrentEpisode {
+  margin-left: 8px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(55, 65, 81, 0.9);
 }
 
 /* Continue watching */
@@ -615,7 +550,7 @@ body {
 }
 
 .modal-player {
-  flex: 1.3;
+  flex: 1;
   min-width: 0;
   position: relative;
 }
@@ -641,71 +576,6 @@ body {
 
 .player-loading.hidden {
   display: none;
-}
-
-/* Episodes list */
-.modal-episodes {
-  flex: 0.9;
-  min-width: 0;
-  border-left: 1px solid rgba(31, 41, 55, 0.9);
-  padding-left: 10px;
-  display: flex;
-  flex-direction: column;
-}
-
-.modal-episodes h3 {
-  font-size: 13px;
-  margin-bottom: 4px;
-}
-
-.modal-episodes ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  overflow-y: auto;
-  flex: 1;
-}
-
-.modal-episodes ul::-webkit-scrollbar {
-  width: 3px;
-}
-.modal-episodes ul::-webkit-scrollbar-thumb {
-  background: rgba(55, 65, 81, 0.9);
-  border-radius: 999px;
-}
-
-.modal-episodes li {
-  font-size: 12px;
-  padding: 6px 8px;
-  border-radius: 10px;
-  margin-bottom: 4px;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(15, 23, 42, 0.85);
-  border: 1px solid transparent;
-  transition: border-color 0.15s ease, background 0.15s ease,
-    transform 0.1s ease;
-}
-
-.modal-episodes li:hover {
-  border-color: rgba(148, 163, 184, 0.9);
-  transform: translateY(-1px);
-}
-
-.modal-episodes li.active {
-  background: rgba(249, 115, 22, 0.95);
-  color: #020617;
-  border-color: rgba(248, 250, 252, 0.9);
-}
-
-.badge-free {
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 999px;
-  background: rgba(22, 163, 74, 0.25);
-  color: #bbf7d0;
 }
 
 /* Tombol LIST EPISODE di header modal */
@@ -737,17 +607,9 @@ body {
   transform: translateY(-1px);
 }
 
-/* badge episode aktif di header */
-#modalCurrentEpisode {
-  margin-left: 8px;
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(55, 65, 81, 0.9);
-}
-
-/* MODAL GRID EPISODE */
+/* -------------------------------------------------
+   MODAL GRID EPISODE
+----------------------------------------------------*/
 .episode-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -977,13 +839,6 @@ body {
 
   .modal-body {
     flex-direction: column;
-  }
-
-  .modal-episodes {
-    border-left: none;
-    border-top: 1px solid rgba(31, 41, 55, 0.9);
-    padding-left: 0;
-    padding-top: 6px;
   }
 
   .ad-floating {
