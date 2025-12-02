@@ -71,7 +71,7 @@
       <div class="loading-text">Mengambil data...</div>
     </div>
 
-    <!-- Modal detail: TANPA COVER KECIL -->
+    <!-- MODAL VIEW: Judul + Player custom + List episode -->
     <div id="detailModal" class="modal-backdrop">
       <div class="modal">
         <button class="modal-close">&times;</button>
@@ -79,50 +79,67 @@
         <div class="modal-header">
           <div class="modal-meta">
             <h2 id="modalTitle"></h2>
-            <p id="modalIntro"></p>
             <div class="modal-badges">
-              <span id="modalEpisodeCount"></span>
               <span id="modalCurrentEpisode"></span>
             </div>
-
-            <div id="continueBanner" class="continue-banner hidden">
-              <span id="continueText"></span>
-              <button id="continueBtn" type="button">Lanjut</button>
-            </div>
           </div>
-
-          <button id="openEpisodeListBtn" class="episode-list-btn">
-            <i class="ri-play-list-2-line"></i>
-            <span>List Episode</span>
-          </button>
         </div>
 
         <div class="modal-body">
           <div class="modal-player">
-            <video
-              id="playerVideo"
-              controls
-              playsinline
-              preload="metadata"
-            ></video>
-            <div id="playerLoading" class="player-loading hidden">
-              <div class="loader small"></div>
-              <span>Memuat episode...</span>
+            <div class="video-shell">
+              <video
+                id="playerVideo"
+                playsinline
+                preload="metadata"
+              ></video>
+
+              <div class="video-overlay-top"></div>
+              <div class="video-overlay-bottom"></div>
+
+              <!-- Kontrol custom -->
+              <div class="video-controls">
+                <button id="playPauseBtn" class="vc-btn">
+                  <i class="ri-play-fill"></i>
+                </button>
+
+                <div class="vc-time">
+                  <span id="currentTimeLabel">00:00</span>
+                  <input
+                    id="seekBar"
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value="0"
+                  />
+                  <span id="durationLabel">00:00</span>
+                </div>
+
+                <div class="vc-right">
+                  <button id="muteBtn" class="vc-btn">
+                    <i class="ri-volume-up-fill"></i>
+                  </button>
+                  <button id="fullscreenBtn" class="vc-btn">
+                    <i class="ri-fullscreen-fill"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Loading di atas video -->
+              <div id="playerLoading" class="player-loading hidden">
+                <div class="loader small"></div>
+                <span>Memuat episode...</span>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Modal GRID LIST EPISODE -->
-    <div id="episodeListModal" class="episode-modal-backdrop">
-      <div class="episode-modal">
-        <div class="episode-modal-header">
-          <span id="episodeModalTitle">Daftar Episode</span>
-          <button class="episode-modal-close" type="button">&times;</button>
-        </div>
-        <div id="episodeGrid" class="episode-grid">
-          <!-- item grid di-inject via JS -->
+          <div class="modal-episodes">
+            <h3>Daftar Episode</h3>
+            <div id="episodeGrid" class="episode-grid">
+              <!-- item episode di-inject via JS -->
+            </div>
+          </div>
         </div>
       </div>
     </div>
