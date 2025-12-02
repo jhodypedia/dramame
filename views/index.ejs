@@ -19,24 +19,12 @@
     <div class="bg-gradient"></div>
 
     <div class="app-shell">
-      <!-- TOP BAR -->
+      <!-- TOP BAR (tanpa search) -->
       <header class="top-bar">
         <div class="logo">
-          Dramame<span>Reels</span>
+          Dramabox<span>Reels</span>
         </div>
-
-        <form id="searchForm" class="search-bar">
-          <input
-            type="text"
-            id="searchInput"
-            placeholder="Cari judul, kata kunci..."
-            autocomplete="off"
-          />
-          <button type="submit">Cari</button>
-        </form>
       </header>
-
-      <!-- (tabs di top dihapus, sekarang ada bottom nav) -->
 
       <!-- Adsterra Top Banner (optional) -->
       <div class="ad-slot ad-top">
@@ -54,14 +42,14 @@
       </main>
     </div>
 
-    <!-- Pager (fixed di atas bottom nav) -->
+    <!-- Pager (di atas bottom nav) -->
     <div class="bottom-bar">
       <button id="prevPageBtn" class="pager-btn">« Sebelumnya</button>
       <div id="pageInfo" class="page-info"></div>
       <button id="nextPageBtn" class="pager-btn">Berikutnya »</button>
     </div>
 
-    <!-- BOTTOM NAV -->
+    <!-- BOTTOM NAV dengan SEARCH -->
     <nav class="bottom-nav">
       <button class="tab-btn active" data-tab="foryou">
         <i class="ri-home-4-fill"></i>
@@ -74,11 +62,11 @@
       </button>
 
       <button class="tab-btn" data-tab="rank">
-        <i class="ri-bar-chart-2-fill"></i>
+        <i class="ri-bar-chart-fill"></i>
         <span>Top Rank</span>
       </button>
 
-      <button class="tab-btn tab-search hidden" data-tab="search">
+      <button class="tab-btn" data-tab="search">
         <i class="ri-search-line"></i>
         <span>Cari</span>
       </button>
@@ -142,6 +130,20 @@
     <!-- Floating ad -->
     <div class="ad-slot ad-floating">
       <!-- PASTE SCRIPT ADSTERRA FLOATING JIKA MAU -->
+    </div>
+
+    <!-- SEARCH MODAL (untuk tab Cari) -->
+    <div id="searchModal" class="search-modal">
+      <div class="search-modal-box">
+        <input
+          id="searchModalInput"
+          type="text"
+          placeholder="Cari judul atau kata kunci..."
+        />
+        <button id="searchModalBtn">
+          <i class="ri-search-line"></i>
+        </button>
+      </div>
     </div>
 
     <script>
