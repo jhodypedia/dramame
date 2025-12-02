@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title><%= title %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/public/css/style.css" />
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  </head>
+  <body>
+    <div class="bg-gradient"></div>
+
+    <div class="app-shell">
+      <header class="top-bar">
+        <div class="logo">
+          Dramabox<span>Reels</span>
+        </div>
+
+        <form id="searchForm" class="search-bar">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Cari judul, kata kunci..."
+            autocomplete="off"
+          />
+          <button type="submit">Cari</button>
+        </form>
+      </header>
+
+      <nav class="tabs">
+        <button class="tab-btn active" data-tab="foryou">For You</button>
+        <button class="tab-btn" data-tab="new">Terbaru</button>
+        <button class="tab-btn" data-tab="rank">Top Rank</button>
+        <button class="tab-btn tab-search hidden" data-tab="search">
+          Hasil Pencarian
+        </button>
+      </nav>
+
+      <!-- Adsterra Top Banner (optional) -->
+      <div class="ad-slot ad-top">
+        <!-- PASTE SCRIPT BANNER ADSTERRA DI SINI JIKA MAU -->
+      </div>
+
+      <main id="reelContainer" class="feed">
+        <!-- Cards akan di-inject via jQuery -->
+
+        <!-- Ad di bawah feed -->
+        <div class="ad-slot ad-feed-bottom">
+          <!-- PASTE SCRIPT NATIVE/INLINE ADSTERRA DI SINI JIKA MAU -->
+        </div>
+      </main>
+
+      <div class="bottom-bar">
+        <button id="prevPageBtn" class="pager-btn">« Sebelumnya</button>
+        <div id="pageInfo" class="page-info"></div>
+        <button id="nextPageBtn" class="pager-btn">Berikutnya »</button>
+      </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+      <div class="loader"></div>
+      <div class="loading-text">Mengambil data...</div>
+    </div>
+
+    <!-- Modal detail -->
+    <div id="detailModal" class="modal-backdrop">
+      <div class="modal">
+        <button class="modal-close">&times;</button>
+
+        <div class="modal-header">
+          <div class="modal-cover-wrap">
+            <img id="modalCover" src="" alt="cover" />
+          </div>
+          <div class="modal-meta">
+            <h2 id="modalTitle"></h2>
+            <p id="modalIntro"></p>
+            <div class="modal-badges">
+              <span id="modalEpisodeCount"></span>
+            </div>
+
+            <div id="continueBanner" class="continue-banner hidden">
+              <span id="continueText"></span>
+              <button id="continueBtn" type="button">Lanjut</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-body">
+          <div class="modal-player">
+            <video
+              id="playerVideo"
+              controls
+              playsinline
+              preload="metadata"
+            ></video>
+            <div id="playerLoading" class="player-loading hidden">
+              <div class="loader small"></div>
+              <span>Memuat episode...</span>
+            </div>
+          </div>
+
+          <div class="modal-episodes">
+            <h3>Daftar Episode</h3>
+            <ul id="episodeList"></ul>
+
+            <div class="ad-slot ad-modal">
+              <!-- Ad di dalam modal (opsional) -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating ad -->
+    <div class="ad-slot ad-floating">
+      <!-- PASTE SCRIPT ADSTERRA FLOATING JIKA MAU -->
+    </div>
+
+    <script>
+      window.AD_DIRECTLINK = "<%= adDirectLink ? adDirectLink.replace(/"/g, '&quot;') : '' %>";
+      window.AD_FREQUENCY = <%= typeof adFrequency !== 'undefined' ? adFrequency : 5 %>;
+    </script>
+    <script src="/public/js/main.js"></script>
+  </body>
+</html>
