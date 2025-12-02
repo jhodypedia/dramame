@@ -735,6 +735,273 @@ body {
   color: #bbf7d0;
 }
 
+/* --- MODAL EPISODE LIST (sama seperti sebelumnya) --- */
+.modal-episodes {
+  flex: 0.6;
+  min-width: 0;
+  border-left: 1px solid rgba(31, 41, 55, 0.9);
+  padding-left: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-episodes h3 {
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.episode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.episode-grid::-webkit-scrollbar {
+  width: 3px;
+}
+.episode-grid::-webkit-scrollbar-thumb {
+  background: rgba(55, 65, 81, 0.9);
+  border-radius: 999px;
+}
+
+.episode-card {
+  border-radius: 12px;
+  padding: 8px;
+  border: 1px solid rgba(31, 41, 55, 0.9);
+  background: rgba(15, 23, 42, 0.95);
+  cursor: pointer;
+  font-size: 11px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: border-color 0.15s ease, background 0.15s ease,
+    transform 0.1s ease;
+}
+
+.episode-card:hover {
+  border-color: rgba(148, 163, 184, 0.9);
+  transform: translateY(-1px);
+}
+
+.episode-card.active {
+  background: rgba(249, 115, 22, 0.95);
+  border-color: rgba(248, 250, 252, 0.9);
+  color: #020617;
+}
+
+.ep-number {
+  font-weight: 700;
+}
+
+.ep-title {
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+.ep-badge {
+  align-self: flex-start;
+  margin-top: 2px;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(22, 163, 74, 0.25);
+  color: #bbf7d0;
+}
+
+/* --- PLAYER CUSTOM ala Netflix --- */
+
+.modal-player {
+  flex: 1.4;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-shell {
+  position: relative;
+  width: 100%;
+  max-width: 620px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: black;
+  aspect-ratio: 16 / 9;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.9);
+}
+
+/* Video full di dalam container */
+.video-shell video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: black;
+}
+
+/* sembunyikan native control sebisa mungkin */
+video::-webkit-media-controls {
+  display: none !important;
+}
+
+.video-overlay-top,
+.video-overlay-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+.video-overlay-top {
+  top: 0;
+  height: 80px;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.5),
+    transparent
+  );
+}
+
+.video-overlay-bottom {
+  bottom: 0;
+  height: 120px;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.9),
+    transparent
+  );
+}
+
+/* Kontrol */
+.video-controls {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #e5e7eb;
+}
+
+.vc-btn {
+  border: none;
+  background: rgba(15, 23, 42, 0.8);
+  color: #e5e7eb;
+  border-radius: 999px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.vc-btn i {
+  font-size: 18px;
+}
+
+.vc-btn:hover {
+  background: rgba(30, 64, 175, 0.9);
+  transform: translateY(-1px);
+}
+
+.vc-time {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#seekBar {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(55, 65, 81, 0.8);
+  outline: none;
+}
+
+#seekBar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #f97316;
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.35);
+}
+
+#seekBar::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #f97316;
+  border: none;
+}
+
+.vc-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Loading overlay di atas player */
+.player-loading {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.player-loading.hidden {
+  display: none;
+}
+
+/* Badge Episode di header modal */
+#modalCurrentEpisode {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(55, 65, 81, 0.9);
+}
+
+/* Responsive modal untuk HP: player full width atas, list episode di bawah */
+@media (max-width: 768px) {
+  .modal-body {
+    flex-direction: column;
+  }
+
+  .modal-episodes {
+    border-left: none;
+    border-top: 1px solid rgba(31, 41, 55, 0.9);
+    padding-left: 0;
+    padding-top: 8px;
+  }
+
+  .video-shell {
+    max-width: 100%;
+    border-radius: 12px;
+  }
+
+  .ad-floating {
+    bottom: 74px;
+  }
+}
+
 /* -------------------------------------------------
    SEARCH MODAL (BOTTOM NAV)
 ----------------------------------------------------*/
