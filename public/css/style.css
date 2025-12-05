@@ -68,14 +68,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px 8px;
+  padding: 10px 16px;
   backdrop-filter: blur(18px);
-  background: linear-gradient(
-    to bottom,
-    rgba(15, 23, 42, 0.96),
-    rgba(15, 23, 42, 0.75),
-    transparent
-  );
+  background: radial-gradient(circle at top, #020617, rgba(15, 23, 42, 0.96));
   border-bottom: 1px solid rgba(15, 23, 42, 0.9);
 }
 
@@ -131,15 +126,17 @@ body {
 }
 
 /* -------------------------------------------------
-   FEED (VERTICAL REELS, INFINITE SCROLL)
+   FEED (GRID STREAMING STYLE)
 ----------------------------------------------------*/
 .feed {
   position: relative;
-  margin-top: 0;
   flex: 1;
   overflow-y: auto;
-  scroll-snap-type: y mandatory;
-  padding-bottom: 120px; /* ruang utk bottom-nav + floating ad */
+  padding: 12px 16px 110px; /* ruang utk bottom-nav */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+  align-content: flex-start;
 }
 
 .feed::-webkit-scrollbar {
@@ -159,29 +156,16 @@ body {
   transition: opacity 0.15s ease, filter 0.15s ease;
 }
 
+/* Card individual */
 .video-card {
   position: relative;
-  height: 100vh;
   width: 100%;
-  scroll-snap-align: start;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  /* Hapus padding vertikal supaya tidak ada celah antar card */
-  padding: 0 16px;
+  height: auto;
+  display: block;
+  padding: 0;
   opacity: 0;
-  transform: translateY(24px) scale(0.97);
-  transition: opacity 0.45s ease, transform 0.45s ease;
-}
-
-/* Beri jarak kecil hanya di card pertama & terakhir,
-   bukan di tengah-tengah antar card */
-.video-card:first-child {
-  padding-top: 16px;
-}
-
-.video-card:last-of-type {
-  padding-bottom: 16px;
+  transform: translateY(16px) scale(0.98);
+  transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
 .video-card.card-enter {
@@ -189,24 +173,25 @@ body {
   transform: translateY(0) scale(1);
 }
 
+/* Poster-style card */
 .card-inner {
   position: relative;
   width: 100%;
-  max-width: 420px;
-  aspect-ratio: 9 / 16;
-  border-radius: 26px;
+  max-width: 100%;
+  aspect-ratio: 2 / 3; /* poster streaming */
+  border-radius: 18px;
   overflow: hidden;
   background: radial-gradient(circle at top, #020617, #020617);
   border: 1px solid rgba(55, 65, 81, 0.9);
-  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.95);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.85);
   cursor: pointer;
-  transition: transform 0.22s ease, box-shadow 0.22s ease,
-    border-color 0.22s ease;
+  transition: transform 0.18s ease, box-shadow 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .card-inner:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: 0 34px 80px rgba(0, 0, 0, 0.96);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.9);
   border-color: rgba(249, 115, 22, 0.9);
 }
 
@@ -215,14 +200,14 @@ body {
   inset: 0;
   background-size: cover;
   background-position: center;
-  filter: brightness(0.94);
+  filter: brightness(0.96);
   transform: scale(1.02);
-  transition: filter 0.25s ease, transform 0.25s ease;
+  transition: filter 0.22s ease, transform 0.22s ease;
 }
 
 .card-inner:hover .card-cover {
-  filter: brightness(1.02);
-  transform: scale(1.05);
+  filter: brightness(1.03);
+  transform: scale(1.06);
 }
 
 .card-gradient {
@@ -230,44 +215,44 @@ body {
   inset: 0;
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.97),
+    rgba(0, 0, 0, 0.95),
     transparent 45%
   );
 }
 
-/* corner label */
+/* corner label di atas kiri */
 .card-corner {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  padding: 4px 10px;
+  top: 8px;
+  left: 8px;
+  padding: 3px 8px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   background: rgba(15, 23, 42, 0.85);
   border: 1px solid rgba(55, 65, 81, 0.9);
 }
 
-/* info + meta */
+/* info di bawah */
 .card-info {
   position: absolute;
-  left: 14px;
-  right: 80px;
-  bottom: 16px;
+  left: 8px;
+  right: 8px;
+  bottom: 6px;
   z-index: 2;
 }
 
 .card-title {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
-  margin-bottom: 4px;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+  margin-bottom: 2px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
 }
 
 .card-desc {
-  font-size: 12px;
+  font-size: 11px;
   opacity: 0.9;
-  max-height: 3.5em;
+  max-height: 2.4em;
   overflow: hidden;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
 }
@@ -275,48 +260,48 @@ body {
 .card-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 6px;
-  font-size: 11px;
+  gap: 4px;
+  margin-top: 3px;
+  font-size: 10px;
   opacity: 0.9;
 }
 
 .meta-pill {
-  padding: 2px 8px;
+  padding: 1px 6px;
   border-radius: 999px;
   background: rgba(15, 23, 42, 0.9);
   border: 1px solid rgba(55, 65, 81, 0.9);
 }
 
-/* actions on right side */
+/* actions di pojok kanan bawah card (kecil) */
 .card-actions {
   position: absolute;
-  right: 10px;
-  bottom: 18px;
+  right: 6px;
+  bottom: 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 4px;
 }
 
 .card-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 11px;
+  font-size: 9px;
   cursor: pointer;
   color: #e5e7eb;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  transition: transform 0.12s ease, opacity 0.12s ease;
 }
 
 .card-btn span.icon {
-  font-size: 20px;
-  margin-bottom: 2px;
+  font-size: 16px;
+  margin-bottom: 1px;
 }
 
 .card-btn:hover {
-  transform: translateY(-1px) scale(1.02);
+  transform: translateY(-1px) scale(1.05);
   opacity: 1;
 }
 
@@ -925,9 +910,28 @@ video::-webkit-media-controls {
 ----------------------------------------------------*/
 @media (max-width: 768px) {
   .top-bar {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
     gap: 6px;
+  }
+
+  .feed {
+    padding: 10px 8px 100px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .card-inner {
+    border-radius: 14px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.9);
+  }
+
+  .card-title {
+    font-size: 12px;
+  }
+
+  .card-desc {
+    font-size: 10px;
   }
 
   .modal {
