@@ -44,6 +44,7 @@ $(function () {
   let chaptersData = [];
   let totalEpisodes = 0;
   let currentBookTitle = '';
+  let activeBookCover = '';
 
   // Wake Lock (keep screen on)
   let wakeLock = null;
@@ -119,6 +120,109 @@ $(function () {
     try {
       localStorage.removeItem(progressKey(bookId));
     } catch (e) {}
+  }
+
+  /* ========== HISTORY (Riwayat) ========== */
+  const HISTORY_KEY = 'dramabox_history_v1';
+
+  function loadHistory() {
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      if (!raw) return [];
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveHistory(arr) {
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(arr || []));
+    } catch (e) {}
+  }
+
+  function updateHistoryEntry() {
+    if (!activeBookId) return;
+
+    const history = loadHistory();
+    const epIndex = Number(lastLoadedChapterIndex) || 0;
+    const epNum = epIndex + 1;
+
+    const filtered = history.filter((h) => h.bookId !== activeBookId);
+
+    const entry = {
+      bookId: activeBookId,
+      title: currentBookTitle || '',
+      cover: activeBookCover || '',
+      lastEpisodeIndex: epIndex,
+      totalEpisodes: totalEpisodes || (chaptersData ? chaptersData.length : 0),
+      lastEpisodeLabel: `Episode ${epNum}`,
+      updatedAt: Date.now()
+    };
+
+    filtered.unshift(entry);
+    saveHistory(filtered.slice(0, 30)); // simpan max 30 item
+  }
+
+  function buildHistoryCardHTML(entry) {
+    const escTitle = $('<div>').text(entry.title || '').html();
+    const desc = entry.totalEpisodes
+      ? `${entry.lastEpisodeLabel} dari ${entry.totalEpisodes} episode`
+      : entry.lastEpisodeLabel;
+
+    return `
+      <section
+        class="video-card history-card"
+        data-book-id="${entry.bookId}"
+        data-title="${escTitle}"
+        data-cover="${entry.cover || ''}"
+      >
+        <div class="card-inner">
+          <div class="card-cover" style="background-image:url('${
+            entry.cover || ''
+          }')"></div>
+          <div class="card-gradient"></div>
+
+          <div class="card-info">
+            <div class="card-title">${escTitle}</div>
+            <div class="card-desc">${desc}</div>
+            <div class="card-meta">
+              <span class="meta-pill">Lanjut nonton</span>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <div class="card-btn" data-action="detail">
+              <span class="icon">▶️</span>
+              <span>Putar</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  function renderHistoryTab() {
+    const history = loadHistory();
+
+    if (!history.length) {
+      $feed.html(
+        '<div style="padding:16px;text-align:center;opacity:0.8;">Belum ada riwayat tontonan.</div>'
+      );
+      return;
+    }
+
+    const html = history.map(buildHistoryCardHTML).join('');
+    $feed.html(html);
+
+    const $cards = $feed.children('.video-card');
+    $cards.each(function (i) {
+      const $card = $(this);
+      setTimeout(() => {
+        $card.addClass('card-enter');
+      }, i * 60);
+    });
   }
 
   /* ========== AD COUNTER ========== */
@@ -245,10 +349,12 @@ $(function () {
     if (currentTab === 'rank') return '/api/videos/rank';
     if (currentTab === 'search')
       return `/api/search?q=${encodeURIComponent(currentSearch)}`;
+    // foryou default
     return '/api/videos/foryou';
   }
 
   function fetchPage(append = false) {
+    if (currentTab === 'history') return; // history tidak pakai API
     if (isLoading) return;
     if (!append) {
       currentPage = 0;
@@ -323,6 +429,7 @@ $(function () {
 
   /* ========== TAB + INFINITE SCROLL ========== */
   $feed.on('scroll', function () {
+    if (currentTab === 'history') return;
     if (!hasMore || isLoading) return;
     const el = this;
     const threshold = 200;
@@ -334,6 +441,7 @@ $(function () {
   $tabs.on('click', function () {
     const tab = $(this).data('tab');
 
+    // tab search → buka modal
     if (tab === 'search') {
       $tabs.removeClass('active');
       $(this).addClass('active');
@@ -342,8 +450,23 @@ $(function () {
       return;
     }
 
+    // tutup search jika pindah tab
     $searchModal.removeClass('visible');
 
+    // history tab
+    if (tab === 'history') {
+      currentTab = 'history';
+      hasMore = false;
+      isLoading = false;
+      currentPage = 0;
+      $tabs.removeClass('active');
+      $(this).addClass('active');
+      $feed.scrollTop(0);
+      renderHistoryTab();
+      return;
+    }
+
+    // tab biasa (foryou/new/rank)
     if (tab === currentTab && currentPage > 0) return;
     currentTab = tab;
     currentSearch = '';
@@ -357,11 +480,14 @@ $(function () {
     fetchPage(false);
   });
 
-  /* ========== SEARCH MODAL ========== */
+  /* ========== SEARCH MODAL (klik di luar = close) ========== */
   $searchModal.on('click', function (e) {
-    if ($(e.target).is('#searchModal')) {
+    // kalau klik di luar box
+    if (!$(e.target).closest('.search-modal-box').length) {
       $searchModal.removeClass('visible');
-      if (!currentSearch) {
+
+      // jika tab search aktif & tidak ada pencarian, kembalikan ke For You
+      if (currentTab === 'search' && !currentSearch) {
         currentTab = 'foryou';
         $tabs.removeClass('active');
         $tabs.filter('[data-tab="foryou"]').addClass('active');
@@ -451,6 +577,7 @@ $(function () {
     chaptersData = [];
     totalEpisodes = 0;
     currentBookTitle = '';
+    activeBookCover = '';
     $playerVideo.attr('src', '');
     const v = $playerVideo.get(0);
     if (v) v.pause();
@@ -464,6 +591,7 @@ $(function () {
     activeBookId = bookId;
 
     currentBookTitle = meta?.title || '';
+    activeBookCover = meta?.cover || '';
     $modalTitle.text(currentBookTitle || '');
 
     $modal.addClass('visible');
@@ -497,6 +625,10 @@ $(function () {
         lastLoadedChapterIndex = activeIndex;
         updateCurrentEpisodeLabel();
         renderEpisodeGrid();
+
+        // riwayat langsung di-update begitu user buka detail
+        updateHistoryEntry();
+
         loadEpisode(activeBookId, activeIndex, { resume: true });
       })
       .fail(() => {
@@ -582,6 +714,7 @@ $(function () {
     renderEpisodeGrid();
     $episodeListModal.removeClass('visible');
     if (activeBookId) {
+      updateHistoryEntry();
       loadEpisode(activeBookId, idx, { resume: false });
     }
   });
@@ -604,6 +737,7 @@ $(function () {
     armAdForEpisode(bookId, lastLoadedChapterIndex);
     updateCurrentEpisodeLabel();
     renderEpisodeGrid();
+    updateHistoryEntry(); // update riwayat setiap kali episode diganti
 
     $playerLoading.removeClass('hidden');
     $playerVideo.attr('src', '');
@@ -668,6 +802,7 @@ $(function () {
             lastLoadedChapterIndex = nextIndex;
             updateCurrentEpisodeLabel();
             renderEpisodeGrid();
+            updateHistoryEntry();
             loadEpisode(activeBookId, nextIndex, { resume: false });
           } else {
             clearProgress(activeBookId);
