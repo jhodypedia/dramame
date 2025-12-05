@@ -132,6 +132,9 @@ body {
   position: relative;
   flex: 1;
   overflow-y: auto;
+  contain: layout paint;
+  padding-top: 20px;          /* 🟧 Tambahkan jarak antara header & grid */
+  margin-top: 10px;
   padding: 12px 16px 110px; /* ruang utk bottom-nav */
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
