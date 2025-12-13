@@ -17,23 +17,82 @@
   <body>
     <div class="bg-gradient"></div>
 
-    <div class="app-shell">
+    <div class="app-shell streaming-shell">
       <!-- TOP BAR -->
-      <header class="top-bar">
+      <header class="top-bar streaming-topbar">
         <div class="logo">
           Pansa<span>Drama</span>
         </div>
+
+        <div class="top-actions">
+          <button id="openSearchBtn" class="icon-btn" type="button" aria-label="Cari">
+            <i class="ri-search-line"></i>
+          </button>
+        </div>
       </header>
+
+      <!-- HERO / FEATURED -->
+      <section class="hero">
+        <div class="hero-backdrop">
+          <div class="hero-gradient"></div>
+        </div>
+
+        <div class="hero-content">
+          <div class="hero-badge">
+            <i class="ri-fire-fill"></i>
+            <span>Trending Hari Ini</span>
+          </div>
+          <h1 class="hero-title">Short Drama yang bikin nagih</h1>
+          <p class="hero-subtitle">
+            Scroll cepat, pilih genre favorit, dan lanjutkan tontonan terakhir kamu.
+          </p>
+
+          <div class="hero-actions">
+            <button id="heroPlayBtn" class="btn btn-primary" type="button">
+              <i class="ri-play-fill"></i>
+              <span>Putar Random</span>
+            </button>
+            <button id="heroRefreshBtn" class="btn btn-ghost" type="button">
+              <i class="ri-refresh-line"></i>
+              <span>Ganti</span>
+            </button>
+          </div>
+        </div>
+      </section>
 
       <!-- Adsterra Top Banner (optional) -->
       <div class="ad-slot ad-top">
         <!-- script banner kalau ada -->
       </div>
 
-      <!-- FEED -->
-      <main id="reelContainer" class="feed">
-        <!-- cards akan di-inject via JS -->
+      <!-- FILTER ROW (Kategori cepat / sort) -->
+      <section class="filter-row">
+        <div class="filter-left">
+          <button class="chip active" data-sort="1" type="button">
+            <i class="ri-star-fill"></i> Populer
+          </button>
+          <button class="chip" data-sort="2" type="button">
+            <i class="ri-time-fill"></i> Terbaru
+          </button>
+        </div>
+
+        <div class="filter-right">
+          <button id="openGenreBtn" class="chip chip-outline" type="button">
+            <i class="ri-grid-fill"></i> Genre
+          </button>
+        </div>
+      </section>
+
+      <!-- GRID FEED (STREAMING) -->
+      <main id="reelContainer" class="streaming-feed">
+        <!-- cards injected via JS -->
       </main>
+
+      <!-- LAZY LOAD sentinel -->
+      <div id="lazySentinel" class="lazy-sentinel">
+        <div class="loader small"></div>
+        <div class="lazy-text">Memuat lagi...</div>
+      </div>
     </div>
 
     <!-- BOTTOM NAV -->
@@ -57,6 +116,10 @@
       <button class="tab-btn" data-tab="search">
         <i class="ri-search-line"></i>
         <span>Cari</span>
+      </button>
+      <button class="tab-btn" data-tab="genre">
+        <i class="ri-apps-2-fill"></i>
+        <span>Genre</span>
       </button>
     </nav>
 
@@ -143,9 +206,24 @@
       </div>
     </div>
 
+    <!-- GENRE MODAL -->
+    <div id="genreModal" class="genre-modal-backdrop">
+      <div class="genre-modal">
+        <div class="genre-modal-header">
+          <span>Pilih Genre</span>
+          <button id="closeGenreBtn" class="genre-modal-close" type="button">&times;</button>
+        </div>
+        <div class="genre-modal-body">
+          <!-- isi genre di-load oleh JS (bisa statis/atau dari endpoint) -->
+          <div id="genreGrid" class="genre-grid">
+            <!-- chips via JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- FLOATING AD (opsional) -->
     <div class="ad-slot ad-floating">
-      <!-- Adsterra Social Bar -->
       <script
         type="text/javascript"
         src="//pl28176697.effectivegatecpm.com/c0/22/d6/c022d663631c0494ad0cd27406beebff.js">
@@ -160,16 +238,26 @@
           type="text"
           placeholder="Cari judul atau kata kunci..."
         />
-        <button id="searchModalBtn">
+        <button id="searchModalBtn" type="button">
           <i class="ri-search-line"></i>
         </button>
+
+        <!-- suggest dropdown -->
+        <div id="suggestList" class="suggest-list" style="display:none;"></div>
       </div>
     </div>
 
+    <!-- Config ads -->
     <script>
       window.AD_DIRECTLINK = "<%= adDirectLink ? adDirectLink.replace(/\"/g, '&quot;') : '' %>";
       window.AD_FREQUENCY = <%= typeof adFrequency !== 'undefined' ? adFrequency : 5 %>;
     </script>
+
+    <!-- Lazy image helper (native + fallback) -->
+    <script>
+      window.__GENRE_LIST__ = <%- JSON.stringify(typeof genres !== 'undefined' ? genres : []) %>;
+    </script>
+
     <script src="/public/js/main.js"></script>
   </body>
 </html>
