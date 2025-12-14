@@ -5,11 +5,10 @@
     <title><%= title %></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Basic meta (optional tapi bagus) -->
-    <meta name="theme-color" content="#020617" />
-    <meta name="description" content="Short drama seru, scroll cepat, pilih genre favorit, dan lanjutkan tontonan terakhir kamu." />
+    <meta name="theme-color" content="#0b0f17" />
+    <meta name="description" content="Short drama ala Netflix: grid poster, genre favorit, cari cepat, dan lanjutkan tontonan terakhir." />
 
-    <!-- Remix Icon -->
+    <!-- Remix Icon CDN -->
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css"
@@ -20,34 +19,40 @@
   </head>
 
   <body>
-    <div class="bg-gradient"></div>
+    <!-- Background cinematic -->
+    <div class="bg-cinema"></div>
+    <div class="bg-noise"></div>
 
-    <div class="app-shell streaming-shell">
+    <div class="app-shell netflix-shell">
       <!-- TOP BAR -->
-      <header class="top-bar streaming-topbar">
-        <div class="logo">Pansa<span>Drama</span></div>
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-logo">Pansa<span>Drama</span></div>
+          <div class="brand-sub">Netflix-style Short Drama</div>
+        </div>
 
-        <div class="top-actions">
+        <div class="topbar-actions">
           <button id="openSearchBtn" class="icon-btn" type="button" aria-label="Cari">
             <i class="ri-search-line"></i>
           </button>
         </div>
       </header>
 
-      <!-- HERO / FEATURED -->
+      <!-- HERO (Netflix banner) -->
       <section class="hero">
-        <div class="hero-backdrop">
-          <div class="hero-gradient"></div>
+        <div class="hero-bg">
+          <div class="hero-glow"></div>
+          <div class="hero-vignette"></div>
         </div>
 
         <div class="hero-content">
-          <div class="hero-badge">
+          <div class="hero-pill">
             <i class="ri-fire-fill"></i>
             <span>Trending Hari Ini</span>
           </div>
 
           <h1 class="hero-title">Short Drama yang bikin nagih</h1>
-          <p class="hero-subtitle">
+          <p class="hero-desc">
             Scroll cepat, pilih genre favorit, dan lanjutkan tontonan terakhir kamu.
           </p>
 
@@ -56,6 +61,7 @@
               <i class="ri-play-fill"></i>
               <span>Putar Random</span>
             </button>
+
             <button id="heroRefreshBtn" class="btn btn-ghost" type="button">
               <i class="ri-refresh-line"></i>
               <span>Ganti</span>
@@ -71,9 +77,9 @@
         <% } %>
       </div>
 
-      <!-- FILTER ROW -->
-      <section class="filter-row">
-        <div class="filter-left">
+      <!-- FILTER / QUICK ACTIONS -->
+      <section class="filters">
+        <div class="filters-left">
           <button class="chip active" data-sort="1" type="button">
             <i class="ri-star-fill"></i> Populer
           </button>
@@ -82,18 +88,18 @@
           </button>
         </div>
 
-        <div class="filter-right">
+        <div class="filters-right">
           <button id="openGenreBtn" class="chip chip-outline" type="button">
             <i class="ri-grid-fill"></i> Genre
           </button>
         </div>
       </section>
 
-      <!-- GRID FEED -->
-      <main id="reelContainer" class="streaming-feed">
+      <!-- GRID FEED (Netflix poster) -->
+      <main id="reelContainer" class="grid-feed">
         <!-- cards injected via main.js -->
 
-        <!-- LAZY sentinel: taruh DI DALAM grid biar observer konsisten -->
+        <!-- LAZY LOAD sentinel (harus ada untuk IntersectionObserver) -->
         <div id="lazySentinel" class="lazy-sentinel">
           <div class="loader small"></div>
           <div class="lazy-text">Memuat lagi...</div>
@@ -134,16 +140,16 @@
       </button>
     </nav>
 
-    <!-- LOADING OVERLAY -->
+    <!-- LOADING FULL PAGE -->
     <div id="loadingOverlay" class="loading-overlay">
       <div class="loader"></div>
       <div class="loading-text">Mengambil data...</div>
     </div>
 
-    <!-- DETAIL MODAL -->
+    <!-- MODAL DETAIL -->
     <div id="detailModal" class="modal-backdrop">
       <div class="modal">
-        <button class="modal-close" type="button">&times;</button>
+        <button class="modal-close" type="button" aria-label="Tutup">&times;</button>
 
         <div class="modal-header">
           <div class="modal-meta">
@@ -164,6 +170,7 @@
               <div class="video-overlay-top"></div>
               <div class="video-overlay-bottom"></div>
 
+              <!-- Custom controls -->
               <div class="video-controls">
                 <button id="playPauseBtn" class="vc-btn" type="button">
                   <i class="ri-play-fill"></i>
@@ -192,6 +199,7 @@
                 </div>
               </div>
 
+              <!-- Loading overlay di atas video -->
               <div id="playerLoading" class="player-loading hidden">
                 <div class="loader small"></div>
                 <span>Memuat episode...</span>
@@ -207,7 +215,7 @@
       <div class="episode-modal">
         <div class="episode-modal-header">
           <span id="episodeModalTitle">Daftar Episode</span>
-          <button class="episode-modal-close" type="button">&times;</button>
+          <button class="episode-modal-close" type="button" aria-label="Tutup">&times;</button>
         </div>
         <div id="episodeGrid" class="episode-grid"></div>
       </div>
@@ -218,7 +226,7 @@
       <div class="genre-modal">
         <div class="genre-modal-header">
           <span>Pilih Genre</span>
-          <button id="closeGenreBtn" class="genre-modal-close" type="button">&times;</button>
+          <button id="closeGenreBtn" class="genre-modal-close" type="button" aria-label="Tutup">&times;</button>
         </div>
         <div class="genre-modal-body">
           <div id="genreGrid" class="genre-grid"></div>
@@ -226,12 +234,11 @@
       </div>
     </div>
 
-    <!-- FLOATING AD (optional) -->
+    <!-- FLOATING AD (opsional) -->
     <div class="ad-slot ad-floating">
       <% if (typeof adFloatingHtml !== 'undefined' && adFloatingHtml) { %>
         <%- adFloatingHtml %>
       <% } else { %>
-        <!-- default example -->
       <% } %>
     </div>
 
@@ -252,7 +259,7 @@
       </div>
     </div>
 
-    <!-- CONFIG -->
+    <!-- Config -->
     <script>
       window.AD_DIRECTLINK = "<%= adDirectLink ? String(adDirectLink).replace(/\"/g, '&quot;') : '' %>";
       window.AD_FREQUENCY = <%= typeof adFrequency !== 'undefined' ? adFrequency : 5 %>;
