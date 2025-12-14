@@ -3,10 +3,10 @@ $(function () {
   const $loadingOverlay = $('#loadingOverlay');
   const $tabs = $('.bottom-nav .tab-btn');
 
-  // Hero + filter UI
+  // Hero + filter UI (opsional kalau ada)
   const $heroPlayBtn = $('#heroPlayBtn');
   const $heroRefreshBtn = $('#heroRefreshBtn');
-  const $chips = $('.filters .chip');
+  const $chips = $('.filter-row .chip, .filters .chip'); // support dua class
 
   // Lazy sentinel
   const $lazySentinel = $('#lazySentinel');
@@ -49,7 +49,7 @@ $(function () {
   /* =========================
      FORCE SCROLL FIX (iOS)
   ========================== */
-  // Pastikan container feed benar-benar bisa scroll meskipun body overflow:hidden
+  // Body kamu biasanya overflow:hidden, jadi feed harus jadi scroll container yang bener.
   $feed.css({
     overflowY: 'auto',
     WebkitOverflowScrolling: 'touch'
@@ -67,10 +67,10 @@ $(function () {
   let currentSort = 1; // 1 populer, 2 terbaru
   let currentGenreId = null; // classify genre id
 
-  // Cache items untuk random play
+  // cache items (buat random play)
   let lastItems = [];
 
-  // Player state
+  // player state
   let activeBookId = null;
   let lastLoadedChapterIndex = null;
   let resumeFromTime = null;
@@ -80,7 +80,7 @@ $(function () {
   let currentBookTitle = '';
   let activeBookCover = '';
 
-  // Wake Lock
+  // wake lock
   let wakeLock = null;
 
   /* =========================
@@ -90,9 +90,6 @@ $(function () {
     $loadingOverlay.toggleClass('visible', !!show);
   }
 
-  /* =========================
-     SAFE ESCAPE
-  ========================== */
   function esc(s) {
     return $('<div>').text(String(s ?? '')).html();
   }
@@ -292,7 +289,7 @@ $(function () {
   }
 
   /* =========================
-     NETFLIX CARD BUILDER
+     CARD BUILDER (Netflix-grid)
   ========================== */
   function buildCardHTML(item) {
     const title = esc(item.title || '');
@@ -322,7 +319,7 @@ $(function () {
     `;
   }
 
-  function buildSkeletonHTML(count = 8) {
+  function buildSkeletonHTML(count = 10) {
     let html = '';
     for (let i = 0; i < count; i++) {
       html += `
@@ -357,9 +354,7 @@ $(function () {
         <div class="card-poster">
           <img src="${cover}" alt="${title}" loading="lazy" />
           <div class="card-overlay"></div>
-
           <div class="history-pill">Lanjut</div>
-
           <div class="card-info">
             <div class="card-title">${title}</div>
             <div class="card-meta">${desc}</div>
@@ -369,26 +364,22 @@ $(function () {
     `;
   }
 
-  /* =========================
-     RENDER HISTORY TAB
-  ========================== */
   function renderHistoryTab() {
     const history = loadHistory();
     if (!history.length) {
-      $feed.html(
-        '<div style="padding:18px;text-align:center;opacity:0.85;">Belum ada riwayat tontonan.</div>'
-      );
+      $feed.html('<div style="padding:18px;text-align:center;opacity:0.85;">Belum ada riwayat tontonan.</div>');
       return;
     }
-    $feed.html(history.map(buildHistoryCardHTML).join('') + $lazySentinel.prop('outerHTML'));
+    $feed.html(history.map(buildHistoryCardHTML).join('') + ($lazySentinel.prop('outerHTML') || ''));
   }
 
   /* =========================
-     FETCH PAGE (LAZY / INFINITE)
+     FETCH PAGE
   ========================== */
   function fetchPage(append = false) {
     if (currentTab === 'history') return;
     if (isLoading) return;
+
     if (!append) {
       currentPage = 0;
       hasMore = true;
@@ -403,53 +394,39 @@ $(function () {
 
     if (!append) {
       showLoading(true);
-      // tampilkan skeleton dulu biar UI smooth
-      $feed.html(buildSkeletonHTML(10) + $lazySentinel.prop('outerHTML'));
+      $feed.html(buildSkeletonHTML(10) + ($lazySentinel.prop('outerHTML') || ''));
       $feed.scrollTop(0);
-    } else {
-      // ketika append, biarkan sentinel tetap tampil
     }
 
     const dataQuery = { page: nextPage };
 
-    // classify param
+    // classify
     if (currentTab === 'classify') {
       dataQuery.pageNo = nextPage;
       dataQuery.genre = currentGenreId;
       dataQuery.sort = currentSort;
-      // kompat: beberapa backend pakai "page" / "pageNo"
       delete dataQuery.page;
     }
 
-    $.ajax({
-      url,
-      method: 'GET',
-      data: dataQuery
-    })
+    $.ajax({ url, method: 'GET', data: dataQuery })
       .done((res) => {
         hasMore = !!res.hasMore;
-
         const items = res.items || [];
+
         if (!append) lastItems = items.slice();
         else lastItems = lastItems.concat(items);
 
         const html = items.map(buildCardHTML).join('');
-
-        // Pastikan sentinel ada di akhir
         const sentinelHtml = $lazySentinel.prop('outerHTML') || '';
 
         if (!append) {
           if (!items.length) {
-            $feed.html(
-              '<div style="padding:18px;text-align:center;opacity:0.85;">Tidak ada data.</div>' +
-                sentinelHtml
-            );
+            $feed.html('<div style="padding:18px;text-align:center;opacity:0.85;">Tidak ada data.</div>' + sentinelHtml);
           } else {
             $feed.html(html + sentinelHtml);
           }
         } else {
           if (items.length) {
-            // remove old sentinel then append new block+sentinel
             $('#lazySentinel').remove();
             $feed.append(html + sentinelHtml);
           } else {
@@ -461,68 +438,89 @@ $(function () {
       })
       .fail(() => {
         if (!append) {
-          $feed.html(
-            '<div style="padding:18px;text-align:center;opacity:0.85;">Gagal memuat data.</div>' +
-              ($lazySentinel.prop('outerHTML') || '')
-          );
+          $feed.html('<div style="padding:18px;text-align:center;opacity:0.85;">Gagal memuat data.</div>' + ($lazySentinel.prop('outerHTML') || ''));
         }
         hasMore = false;
       })
       .always(() => {
         isLoading = false;
         showLoading(false);
-        setupLazyObserver(); // re-bind observer karena sentinel diganti
+        setupLazyObserver(); // ✅ penting: rebind observer karena sentinel diganti
       });
   }
 
   /* =========================
-     LAZY OBSERVER (SCROLL FIX)
+     LAZY OBSERVER FIX (ANTI AUTO LOAD)
   ========================== */
   let io = null;
+  let userInteractedScroll = false;
+  let lastLazyFireAt = 0;
+
+  // tandai interaksi user
+  $feed.on('scroll.user', function () {
+    if (this.scrollTop > 5) userInteractedScroll = true;
+  });
+  $feed.on('touchstart.user wheel.user', function () {
+    userInteractedScroll = true;
+  });
+
+  function nearBottom() {
+    const el = $feed.get(0);
+    if (!el) return false;
+    const distance = el.scrollHeight - (el.scrollTop + el.clientHeight);
+    return distance < 220;
+  }
 
   function setupLazyObserver() {
-    // reset
     if (io) {
-      try {
-        io.disconnect();
-      } catch {}
+      try { io.disconnect(); } catch {}
       io = null;
     }
 
     const sentinel = document.getElementById('lazySentinel');
     if (!sentinel) return;
-
-    // Jika history tab, sentinel tidak perlu
     if (currentTab === 'history') return;
 
-    // Pakai IntersectionObserver (recommended)
     if ('IntersectionObserver' in window) {
       io = new IntersectionObserver(
         (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              if (hasMore && !isLoading) fetchPage(true);
-            }
-          });
+          const entry = entries[0];
+          if (!entry || !entry.isIntersecting) return;
+          if (!hasMore || isLoading) return;
+
+          // ✅ throttle
+          const now = Date.now();
+          if (now - lastLazyFireAt < 650) return;
+          lastLazyFireAt = now;
+
+          // ✅ stop auto-load tanpa scroll
+          if (!userInteractedScroll) return;
+
+          // ✅ benar-benar dekat bottom
+          if (!nearBottom()) return;
+
+          // ✅ unobserve saat fetch
+          try { io.unobserve(sentinel); } catch {}
+
+          fetchPage(true);
         },
         {
-          root: $feed.get(0), // penting: root = feed container (bukan window)
-          rootMargin: '300px 0px',
+          root: $feed.get(0),
+          rootMargin: '0px 0px 120px 0px',
           threshold: 0.01
         }
       );
+
       io.observe(sentinel);
       return;
     }
 
-    // Fallback: scroll event
+    // fallback
     $feed.off('scroll.lazyFallback').on('scroll.lazyFallback', function () {
       if (!hasMore || isLoading) return;
-      const el = this;
-      const threshold = 220;
-      if (el.scrollTop + el.clientHeight >= el.scrollHeight - threshold) {
-        fetchPage(true);
-      }
+      if (!userInteractedScroll) return;
+      if (!nearBottom()) return;
+      fetchPage(true);
     });
   }
 
@@ -530,23 +528,20 @@ $(function () {
      SEARCH (modal + suggest)
   ========================== */
   function openSearchModal() {
-    $suggestList.hide().empty();
+    if ($suggestList && $suggestList.length) $suggestList.hide().empty();
     $searchModal.addClass('visible');
     setTimeout(() => $searchModalInput.val('').focus(), 80);
   }
 
   function closeSearchModal() {
     $searchModal.removeClass('visible');
-    $suggestList.hide().empty();
+    if ($suggestList && $suggestList.length) $suggestList.hide().empty();
   }
 
-  $openSearchBtn.on('click', openSearchModal);
+  if ($openSearchBtn && $openSearchBtn.length) $openSearchBtn.on('click', openSearchModal);
 
-  // klik area luar box => close
   $searchModal.on('click', function (e) {
-    if (!$(e.target).closest('.search-modal-box').length) {
-      closeSearchModal();
-    }
+    if (!$(e.target).closest('.search-modal-box').length) closeSearchModal();
   });
 
   function runSearch() {
@@ -572,15 +567,18 @@ $(function () {
     }
   });
 
-  // Suggest (debounce)
+  // suggest (optional)
   let suggestTimer = null;
   $searchModalInput.on('input', function () {
+    if (!$suggestList || !$suggestList.length) return;
     const q = ($searchModalInput.val() || '').trim();
     clearTimeout(suggestTimer);
+
     if (!q) {
       $suggestList.hide().empty();
       return;
     }
+
     suggestTimer = setTimeout(() => {
       $.ajax({
         url: '/api/suggest',
@@ -605,12 +603,14 @@ $(function () {
     }, 220);
   });
 
-  $suggestList.on('click', '.suggest-item', function () {
-    const v = $(this).data('val');
-    if (!v) return;
-    $searchModalInput.val(v);
-    runSearch();
-  });
+  if ($suggestList && $suggestList.length) {
+    $suggestList.on('click', '.suggest-item', function () {
+      const v = $(this).data('val');
+      if (!v) return;
+      $searchModalInput.val(v);
+      runSearch();
+    });
+  }
 
   /* =========================
      GENRE MODAL
@@ -618,6 +618,7 @@ $(function () {
   const GENRES = Array.isArray(window.__GENRE_LIST__) ? window.__GENRE_LIST__ : [];
 
   function renderGenreGrid() {
+    if (!$genreGrid || !$genreGrid.length) return;
     if (!GENRES.length) {
       $genreGrid.html('<div style="opacity:.8;padding:8px;">Genre belum tersedia.</div>');
       return;
@@ -641,43 +642,40 @@ $(function () {
     $genreModal.removeClass('visible');
   }
 
-  $openGenreBtn.on('click', openGenreModal);
-  $closeGenreBtn.on('click', closeGenreModal);
+  if ($openGenreBtn && $openGenreBtn.length) $openGenreBtn.on('click', openGenreModal);
+  if ($closeGenreBtn && $closeGenreBtn.length) $closeGenreBtn.on('click', closeGenreModal);
 
   $genreModal.on('click', function (e) {
     if ($(e.target).is('#genreModal')) closeGenreModal();
   });
 
-  $genreGrid.on('click', '.genre-chip', function () {
-    const gid = $(this).data('id');
-    if (!gid) return;
+  if ($genreGrid && $genreGrid.length) {
+    $genreGrid.on('click', '.genre-chip', function () {
+      const gid = $(this).data('id');
+      if (!gid) return;
 
-    currentGenreId = Number(gid);
-    currentTab = 'classify';
-    currentSearch = '';
+      currentGenreId = Number(gid);
+      currentTab = 'classify';
+      currentSearch = '';
 
-    // tab active: genre
-    $tabs.removeClass('active');
-    $tabs.filter('[data-tab="genre"]').addClass('active');
+      $tabs.removeClass('active');
+      $tabs.filter('[data-tab="genre"]').addClass('active');
 
-    closeGenreModal();
-    fetchPage(false);
-  });
+      closeGenreModal();
+      fetchPage(false);
+    });
+  }
 
   /* =========================
-     FILTER SORT (Populer/Terbaru)
+     SORT CHIPS (Populer/Terbaru)
   ========================== */
   $chips.on('click', function () {
     const sort = Number($(this).data('sort') || 1);
     currentSort = sort;
-
     $chips.removeClass('active');
     $(this).addClass('active');
 
-    // kalau sedang di classify -> refetch
-    if (currentTab === 'classify' && currentGenreId) {
-      fetchPage(false);
-    }
+    if (currentTab === 'classify' && currentGenreId) fetchPage(false);
   });
 
   /* =========================
@@ -687,7 +685,6 @@ $(function () {
     const tab = $(this).data('tab');
 
     if (tab === 'search') {
-      // buka modal search, jangan pindah tab dulu
       $tabs.removeClass('active');
       $(this).addClass('active');
       openSearchModal();
@@ -701,7 +698,6 @@ $(function () {
       return;
     }
 
-    // history
     if (tab === 'history') {
       currentTab = 'history';
       currentPage = 0;
@@ -715,7 +711,7 @@ $(function () {
       return;
     }
 
-    // normal tabs
+    // normal
     currentTab = tab;
     currentSearch = '';
     currentGenreId = null;
@@ -727,7 +723,7 @@ $(function () {
   });
 
   /* =========================
-     HERO RANDOM PLAY / REFRESH
+     HERO BUTTONS (optional)
   ========================== */
   function openRandomFromItems() {
     if (!lastItems || !lastItems.length) return;
@@ -740,13 +736,8 @@ $(function () {
     });
   }
 
-  $heroPlayBtn.on('click', function () {
-    openRandomFromItems();
-  });
-
-  $heroRefreshBtn.on('click', function () {
-    fetchPage(false);
-  });
+  if ($heroPlayBtn && $heroPlayBtn.length) $heroPlayBtn.on('click', openRandomFromItems);
+  if ($heroRefreshBtn && $heroRefreshBtn.length) $heroRefreshBtn.on('click', () => fetchPage(false));
 
   /* =========================
      DETAIL MODAL / EPISODES
@@ -854,7 +845,6 @@ $(function () {
         renderEpisodeGrid();
 
         updateHistoryEntry();
-
         loadEpisode(activeBookId, activeIndex, { resume: true });
       })
       .fail(() => {
@@ -875,7 +865,7 @@ $(function () {
     if ($(e.target).is('#detailModal')) closeDetailModal();
   });
 
-  // Open from card
+  // open detail from cards (feed & history)
   $feed.on('click', '.stream-card', function (e) {
     e.preventDefault();
     const $card = $(this);
@@ -888,7 +878,7 @@ $(function () {
     });
   });
 
-  // Episode sheet open
+  // episode sheet
   $openEpisodeListBtn.on('click', function () {
     if (!chaptersData || !chaptersData.length) return;
     $episodeModalTitle.text(currentBookTitle ? `Daftar Episode — ${currentBookTitle}` : 'Daftar Episode');
@@ -896,15 +886,14 @@ $(function () {
     $episodeListModal.addClass('visible');
   });
 
-  // Close sheet
   $('.episode-modal-close').on('click', function () {
     $episodeListModal.removeClass('visible');
   });
+
   $episodeListModal.on('click', function (e) {
     if ($(e.target).is('#episodeListModal')) $episodeListModal.removeClass('visible');
   });
 
-  // Pick episode
   $episodeGrid.on('click', '.episode-card', function () {
     const idx = $(this).data('index');
     if (idx === undefined) return;
@@ -1085,7 +1074,6 @@ $(function () {
   /* =========================
      INIT
   ========================== */
-  // default tab: foryou
   fetchPage(false);
   setupLazyObserver();
 });
