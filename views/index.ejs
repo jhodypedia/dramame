@@ -5,7 +5,11 @@
     <title><%= title %></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Remix Icon CDN -->
+    <!-- Basic meta (optional tapi bagus) -->
+    <meta name="theme-color" content="#020617" />
+    <meta name="description" content="Short drama seru, scroll cepat, pilih genre favorit, dan lanjutkan tontonan terakhir kamu." />
+
+    <!-- Remix Icon -->
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css"
@@ -14,15 +18,14 @@
     <link rel="stylesheet" href="/public/css/style.css" />
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   </head>
+
   <body>
     <div class="bg-gradient"></div>
 
     <div class="app-shell streaming-shell">
       <!-- TOP BAR -->
       <header class="top-bar streaming-topbar">
-        <div class="logo">
-          Pansa<span>Drama</span>
-        </div>
+        <div class="logo">Pansa<span>Drama</span></div>
 
         <div class="top-actions">
           <button id="openSearchBtn" class="icon-btn" type="button" aria-label="Cari">
@@ -42,6 +45,7 @@
             <i class="ri-fire-fill"></i>
             <span>Trending Hari Ini</span>
           </div>
+
           <h1 class="hero-title">Short Drama yang bikin nagih</h1>
           <p class="hero-subtitle">
             Scroll cepat, pilih genre favorit, dan lanjutkan tontonan terakhir kamu.
@@ -62,10 +66,12 @@
 
       <!-- Adsterra Top Banner (optional) -->
       <div class="ad-slot ad-top">
-        <!-- script banner kalau ada -->
+        <% if (typeof adTopHtml !== 'undefined' && adTopHtml) { %>
+          <%- adTopHtml %>
+        <% } %>
       </div>
 
-      <!-- FILTER ROW (Kategori cepat / sort) -->
+      <!-- FILTER ROW -->
       <section class="filter-row">
         <div class="filter-left">
           <button class="chip active" data-sort="1" type="button">
@@ -83,62 +89,67 @@
         </div>
       </section>
 
-      <!-- GRID FEED (STREAMING) -->
+      <!-- GRID FEED -->
       <main id="reelContainer" class="streaming-feed">
-        <!-- cards injected via JS -->
-      </main>
+        <!-- cards injected via main.js -->
 
-      <!-- LAZY LOAD sentinel -->
-      <div id="lazySentinel" class="lazy-sentinel">
-        <div class="loader small"></div>
-        <div class="lazy-text">Memuat lagi...</div>
-      </div>
+        <!-- LAZY sentinel: taruh DI DALAM grid biar observer konsisten -->
+        <div id="lazySentinel" class="lazy-sentinel">
+          <div class="loader small"></div>
+          <div class="lazy-text">Memuat lagi...</div>
+        </div>
+      </main>
     </div>
 
     <!-- BOTTOM NAV -->
     <nav class="bottom-nav">
-      <button class="tab-btn active" data-tab="foryou">
+      <button class="tab-btn active" data-tab="foryou" type="button">
         <i class="ri-home-4-fill"></i>
         <span>For You</span>
       </button>
-      <button class="tab-btn" data-tab="new">
+
+      <button class="tab-btn" data-tab="new" type="button">
         <i class="ri-flashlight-fill"></i>
         <span>Terbaru</span>
       </button>
-      <button class="tab-btn" data-tab="rank">
+
+      <button class="tab-btn" data-tab="rank" type="button">
         <i class="ri-bar-chart-fill"></i>
         <span>Top Rank</span>
       </button>
-      <button class="tab-btn" data-tab="history">
+
+      <button class="tab-btn" data-tab="history" type="button">
         <i class="ri-time-line"></i>
         <span>Riwayat</span>
       </button>
-      <button class="tab-btn" data-tab="search">
+
+      <button class="tab-btn" data-tab="search" type="button">
         <i class="ri-search-line"></i>
         <span>Cari</span>
       </button>
-      <button class="tab-btn" data-tab="genre">
+
+      <button class="tab-btn" data-tab="genre" type="button">
         <i class="ri-apps-2-fill"></i>
         <span>Genre</span>
       </button>
     </nav>
 
-    <!-- LOADING FULL PAGE -->
+    <!-- LOADING OVERLAY -->
     <div id="loadingOverlay" class="loading-overlay">
       <div class="loader"></div>
       <div class="loading-text">Mengambil data...</div>
     </div>
 
-    <!-- MODAL DETAIL: judul + badge episode (klik) + player -->
+    <!-- DETAIL MODAL -->
     <div id="detailModal" class="modal-backdrop">
       <div class="modal">
-        <button class="modal-close">&times;</button>
+        <button class="modal-close" type="button">&times;</button>
 
         <div class="modal-header">
           <div class="modal-meta">
             <h2 id="modalTitle"></h2>
 
-            <button id="openEpisodeListBtn" class="episode-pill-btn">
+            <button id="openEpisodeListBtn" class="episode-pill-btn" type="button">
               <span id="modalCurrentEpisode"></span>
               <i class="ri-arrow-down-s-line"></i>
             </button>
@@ -153,9 +164,8 @@
               <div class="video-overlay-top"></div>
               <div class="video-overlay-bottom"></div>
 
-              <!-- Custom controls -->
               <div class="video-controls">
-                <button id="playPauseBtn" class="vc-btn">
+                <button id="playPauseBtn" class="vc-btn" type="button">
                   <i class="ri-play-fill"></i>
                 </button>
 
@@ -173,16 +183,15 @@
                 </div>
 
                 <div class="vc-right">
-                  <button id="muteBtn" class="vc-btn">
+                  <button id="muteBtn" class="vc-btn" type="button">
                     <i class="ri-volume-up-fill"></i>
                   </button>
-                  <button id="fullscreenBtn" class="vc-btn">
+                  <button id="fullscreenBtn" class="vc-btn" type="button">
                     <i class="ri-fullscreen-fill"></i>
                   </button>
                 </div>
               </div>
 
-              <!-- Loading di atas video -->
               <div id="playerLoading" class="player-loading hidden">
                 <div class="loader small"></div>
                 <span>Memuat episode...</span>
@@ -193,16 +202,14 @@
       </div>
     </div>
 
-    <!-- MODAL LIST EPISODE (BOTTOM SHEET) -->
+    <!-- EPISODE LIST (BOTTOM SHEET) -->
     <div id="episodeListModal" class="episode-modal-backdrop">
       <div class="episode-modal">
         <div class="episode-modal-header">
           <span id="episodeModalTitle">Daftar Episode</span>
           <button class="episode-modal-close" type="button">&times;</button>
         </div>
-        <div id="episodeGrid" class="episode-grid">
-          <!-- episode cards via JS -->
-        </div>
+        <div id="episodeGrid" class="episode-grid"></div>
       </div>
     </div>
 
@@ -214,20 +221,22 @@
           <button id="closeGenreBtn" class="genre-modal-close" type="button">&times;</button>
         </div>
         <div class="genre-modal-body">
-          <!-- isi genre di-load oleh JS (bisa statis/atau dari endpoint) -->
-          <div id="genreGrid" class="genre-grid">
-            <!-- chips via JS -->
-          </div>
+          <div id="genreGrid" class="genre-grid"></div>
         </div>
       </div>
     </div>
 
-    <!-- FLOATING AD (opsional) -->
+    <!-- FLOATING AD (optional) -->
     <div class="ad-slot ad-floating">
-      <script
-        type="text/javascript"
-        src="//pl28176697.effectivegatecpm.com/c0/22/d6/c022d663631c0494ad0cd27406beebff.js">
-      </script>
+      <% if (typeof adFloatingHtml !== 'undefined' && adFloatingHtml) { %>
+        <%- adFloatingHtml %>
+      <% } else { %>
+        <!-- default example -->
+        <script
+          type="text/javascript"
+          src="//pl28176697.effectivegatecpm.com/c0/22/d6/c022d663631c0494ad0cd27406beebff.js">
+        </script>
+      <% } %>
     </div>
 
     <!-- SEARCH MODAL -->
@@ -237,24 +246,20 @@
           id="searchModalInput"
           type="text"
           placeholder="Cari judul atau kata kunci..."
+          autocomplete="off"
         />
         <button id="searchModalBtn" type="button">
           <i class="ri-search-line"></i>
         </button>
 
-        <!-- suggest dropdown -->
         <div id="suggestList" class="suggest-list" style="display:none;"></div>
       </div>
     </div>
 
-    <!-- Config ads -->
+    <!-- CONFIG -->
     <script>
-      window.AD_DIRECTLINK = "<%= adDirectLink ? adDirectLink.replace(/\"/g, '&quot;') : '' %>";
+      window.AD_DIRECTLINK = "<%= adDirectLink ? String(adDirectLink).replace(/\"/g, '&quot;') : '' %>";
       window.AD_FREQUENCY = <%= typeof adFrequency !== 'undefined' ? adFrequency : 5 %>;
-    </script>
-
-    <!-- Lazy image helper (native + fallback) -->
-    <script>
       window.__GENRE_LIST__ = <%- JSON.stringify(typeof genres !== 'undefined' ? genres : []) %>;
     </script>
 
